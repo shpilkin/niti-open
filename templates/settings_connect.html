@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block list %}
+{% set is_edit = account is not none %}
+{% set action = "/settings/accounts/" ~ account.id if is_edit else "/settings/accounts" %}
+{% set cur_inbox = (account.folders[0] if account and account.folders else preset.inbox) %}
+{% set cur_sent = (account.folders[1] if account and account.folders and account.folders|length > 1 else preset.sent) %}
+
+<div class="wizard">
+  <a class="back" href="/settings/section/spaces">← Назад к пространствам</a>
+  <h2>{{ "Изменить ящик" if is_edit else "Подключить " ~ preset.label }}</h2>
+
+  {% if not is_edit %}
+  <ol class="steps">
+    {% for step in preset.steps %}<li>{{ step }}</li>{% endfor %}
+  </ol>
+  {% if preset.deeplink %}
+  <a class="btn deeplink" href="{{ preset.deeplink }}" target="_blank" rel="noopener">
+    {{ preset.deeplink_label }} ↗
+  </a>
+  {% endif %}
+  {% endif %}
+
+  <form id="connect-form" class="wz-form" method="post" action="{{ action }}">
+    <input type="hidden" name="provider" value="{{ provider }}">
+    <input type="hidden" name="account_id" value="{{ account.id if is_edit else '' }}">
+
+    <label>Название
+      <input name="name" value="{{ account.name if is_edit else preset.label }}" required>
+    </label>
+    <label>Email / логин
+      <input name="login" type="email" value="{{ account.login if is_edit else '' }}" required>
+    </label>
+    <label>{{ preset.password_label }}
+      <input name="password" type="password" autocomplete="off"
+             placeholder="{{ 'оставьте пустым, чтобы не менять' if is_edit else '' }}"
+             {% if not is_edit %}required{% endif %}>
+    </label>
+    {% if provider in ("yandex", "gmail") %}
+    <label>Пароль календаря (CalDAV) — необязательно
+      <input name="caldav_password" type="password" autocomplete="off"
+             placeholder="отдельный пароль приложения для календаря">
+      <span class="sec-sub">Яндекс выдаёт пароли приложений отдельно на каждый сервис —
+        для доски «К подготовке» создайте пароль типа «Календарь». Пусто — используется
+        пароль почты.{% if is_edit and account.caldav_password_enc %} Сейчас: задан.{% endif %}</span>
+    </label>
+    {% endif %}
+
+    <label>Пространство
+      <select name="space_id">
+        {% for sp in spaces %}
+        <option value="{{ sp.id }}" {% if sp.id == space_id %}selected{% endif %}>{{ sp.name }}</option>
+        {% endfor %}
+      </select>
+      <span class="sec-sub">Ящик — источник этого пространства: его письма попадут на общие
+        доски, в общее досье и к общей модели пространства. Модель, промпты и профиль
+        настраиваются на пространстве, Telegram-боты — там же.</span>
+    </label>
+
+    <details class="adv" {% if provider == 'imap' and not is_edit %}open{% endif %}>
+      <summary>Дополнительно (хост и папки)</summary>
+      <div class="adv-grid">
+        <label>IMAP-хост
+          <input name="host" value="{{ account.host if is_edit else preset.host }}" required>
+        </label>
+        <label>Порт
+          <input name="port" type="number" value="{{ account.port if is_edit else preset.port }}" required>
+        </label>
+        <label>SMTP-хост (для отправки)
+          <input name="smtp_host" value="{{ account.smtp_host if is_edit and account.smtp_host else preset.smtp_host }}">
+        </label>
+        <label>SMTP-порт
+          <input name="smtp_port" type="number" value="{{ account.smtp_port if is_edit else preset.smtp_port }}">
+        </label>
+        <label>Папка «Входящие»
+          <input name="inbox" list="folderlist" value="{{ cur_inbox }}">
+        </label>
+        <label>Папка «Отправленные»
+          <input name="sent" list="folderlist" value="{{ cur_sent }}">
+        </label>
+      </div>
+    </details>
+
+    <div class="wz-actions">
+      <button type="button" class="btn"
+              hx-post="/settings/test" hx-include="#connect-form"
+              hx-target="#test-result" hx-swap="innerHTML">
+        Проверить подключение
+      </button>
+      {% if provider in ("yandex", "gmail") %}
+      <button type="button" class="btn"
+              hx-post="/settings/test-calendar" hx-include="#connect-form"
+              hx-target="#test-result" hx-swap="innerHTML">
+        Проверить календарь
+      </button>
+      {% endif %}
+      <button type="submit" class="btn primary">Сохранить</button>
+    </div>
+  </form>
+
+  <div id="test-result" class="test-result">
+    <span class="muted">Проверь подключение перед сохранением, чтобы автоматически определить папки.</span>
+  </div>
+</div>
+
+<script>
+  function applySuggestion(inbox, sent) {
+    var f = document.getElementById('connect-form');
+    if (inbox) f.querySelector('[name=inbox]').value = inbox;
+    if (sent)  f.querySelector('[name=sent]').value  = sent;
+    f.querySelector('details.adv').open = true;
+  }
+</script>
+{% endblock %}

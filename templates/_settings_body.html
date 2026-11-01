@@ -1,0 +1,9 @@
+{# Inner settings markup (tabs + active section body). Rendered inside base's #list
+   both on a full page load (via settings.html) and, on tab switches, returned on its
+   own for an HX-Request so only #list swaps and the sidebar/ПОЧТА stays put. #}
+<div class="settings">
+  {% include "_settings_tabs.html" %}
+  <div class="settings-body">
+    {% include "settings/" ~ active ~ ".html" %}
+  </div>
+</div>

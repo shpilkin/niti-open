@@ -1,0 +1,171 @@
+{% import "_macros.html" as macros %}
+{% if not item %}
+  <div class="pane-empty">Не найдено.</div>
+{% else %}
+{% set meta = TYPE_META.get(item.type, ("dot", "info")) %}
+<div class="pane-inner" data-open-item="{{ item.id }}">
+  <div class="pane-head">
+    <div class="pane-title"><span class="chip {{ meta[1] }} sm">{{ icon(meta[0], 'ic-sm') }}</span> {{ item.title }}</div>
+    <div class="pane-sub">
+      <span class="badge-type">{{ TYPE_LABEL.get(item.type, item.type) }}</span>
+      <span>
+        {%- set cp = item.counterparty or "—" -%}
+        {# Counterparty opens the person dossier: their open items + recent mail. #}
+        {# No href: a fragment link is a same-document navigation, and the popstate
+           handler in ui.js reloads /view/* — which throws the swapped pane away. #}
+        {%- set cp_link = '<a hx-get="/person?q=' ~ (item.counterparty | urlencode) ~ '&item=' ~ item.id ~ '" hx-target="#pane" hx-swap="innerHTML" title="Досье: открытые обязательства и переписка">' ~ cp ~ '</a>' -%}
+        {%- set cp_html = (cp_link | safe) if item.counterparty else cp -%}
+        {% if item.type == 'MY_COMMITMENT' %}Я → {{ cp_html }}
+        {% elif item.type == 'NEED_MY_REPLY' %}Ответить: {{ cp_html }}
+        {% elif item.type == 'TO_DELEGATE' %}Делегировать: <b>{{ item.delegate_to or 'кому?' }}</b>
+        {% elif item.type in ['WAITING_FOR_REPLY', 'DELEGATED_TASK'] %}{{ cp_html }} → Я
+        {% else %}{{ cp_html }}{% endif %}
+      </span>
+      {% if source %}<span class="src-tag">📨 {{ source }}</span>{% endif %}
+      {# Said at a meeting: the source is the recording, so the tag opens it. #}
+      {% if meeting %}<a class="src-tag" hx-get="/meeting/{{ meeting.id }}"
+         hx-target="#pane" hx-swap="innerHTML"
+         title="Открыть встречу: расшифровка, проекты и всё, что на ней прозвучало">{{
+         icon('mic', 'ic-sm') }} {{ (meeting.title or 'Встреча') | truncate(40, true) }}</a>{% endif %}
+      <span class="st st-{{ item.status }}">{{ item.status }}</span>
+    </div>
+    {# Actions in two bars, one family per role (docs/ux-tasks.md §15): the obligation's
+       lifecycle first — one positive primary, the rare and the destructive behind menus —
+       then the mail actions as one joined group with the assistant's draft as primary. #}
+    <div class="pane-bars">
+    <div class="pane-actions">
+      {# Brought in by the bot and not ruled on yet: accepting it is the primary action —
+         it leaves «Разобрать» and lands on its type's board. #}
+      {% if item.source_kind == 'telegram' and not item.user_verdict %}
+      <button class="btn primary" hx-post="/item/{{ item.id }}/confirm" hx-vals='{"view":"{{ view }}"}' hx-target="#list"
+              title="Принять как есть — задача уходит на доску своего типа">{{ icon('check', 'ic-md') }} На доску</button>
+      {% endif %}
+      <button class="btn success" hx-post="/item/{{ item.id }}/complete" hx-vals='{"view":"{{ view }}","advance":1}' hx-target="#list">{{ icon('check', 'ic-md') }} Готово</button>
+      <button class="btn" type="button" data-snooze-menu
+              title="Отложить: на 3 дня, на неделю, до понедельника, до даты">{{ icon('clock', 'ic-md') }} Отложить {{ icon('chevron', 'ic-sm') }}</button>
+      {# The date itself, coloured by its state like the row's — «просрочено» in words would
+         not fit the bar next to the other three. #}
+      <button class="btn due-{{ due_state(item.due_date) }}" type="button" data-due-btn data-due="{{ item.due_date or '' }}"
+              title="Срок{% if item.due_date %}: {{ item.due_date }} ({{ age(item.due_date) }}){% endif %}">{{ icon('calendar', 'ic-md') }}
+        {% if item.due_date %}{{ item.due_date.strftime('%d.%m') }}{% else %}Срок{% endif %} {{ icon('chevron', 'ic-sm') }}</button>
+      <button class="btn icon" type="button" data-more-menu data-type="{{ item.type }}"
+              title="Ещё: не обязательство, сменить тип, исправить">{{ icon('more', 'ic-md') }}</button>
+    </div>
+    {% if item.source_thread_id %}
+    {% set card_back = ('/item/' ~ item.id ~ '?view=' ~ view) | urlencode %}
+    {% set draft_labels = {"NEED_MY_REPLY": "Черновик ответа",
+                           "WAITING_FOR_REPLY": "Черновик фолоу-апа",
+                           "TO_DELEGATE": "Черновик делегирования"} %}
+    <div class="pane-actions">
+      {% if item.type in draft_labels %}
+      <button class="btn primary" hx-get="/item/{{ item.id }}/draft?view={{ view }}"
+              hx-target="#pane" hx-swap="innerHTML"
+              title="Ассистент подготовит черновик — отправишь сам после правки">
+        {{ icon('pen', 'ic-md') }} {{ draft_labels[item.type] }}</button>
+      {% endif %}
+      <span class="seg">
+        <button class="btn" hx-get="/reply_thread/{{ item.source_thread_id }}?back={{ card_back }}" hx-target="#pane" hx-swap="innerHTML">Ответить</button>
+        <button class="btn" hx-get="/reply_thread/{{ item.source_thread_id }}?all=1&back={{ card_back }}" hx-target="#pane" hx-swap="innerHTML" title="Ответить отправителю и всем получателям">Всем</button>
+        <button class="btn" hx-get="/forward_thread/{{ item.source_thread_id }}?back={{ card_back }}" hx-target="#pane" hx-swap="innerHTML">Переслать</button>
+      </span>
+    </div>
+    {% endif %}
+    </div>
+  </div>
+
+  {# Совет — после панели, не вместе с ней: карточку открывают, чтобы действовать, а
+     совет стоит вызова модели (или чтения прошлого). Заглушка того же размера, чтобы
+     панель не прыгала, когда он придёт. #}
+  {% if advisable %}
+  <div class="reason-box advice" id="advice-{{ item.id }}"
+       hx-get="/item/{{ item.id }}/advice?view={{ view }}" hx-trigger="load" hx-swap="outerHTML">
+    <span class="reason-label">{{ icon('flag', 'ic-sm') }} Что делать</span>
+    <span class="hint-inline">Думаю…</span>
+  </div>
+  {% endif %}
+
+  {# Задача со встречи: писем под ней нет, и понять её можно только по тому, что было
+     сказано. Поэтому — сама встреча, момент, на который сослалась модель, и файл
+     расшифровки целиком. #}
+  {% if meeting %}
+  <div class="src-block">
+    <div class="src-line">{{ icon('mic', 'ic-sm') }} Сказано на встрече
+      <b>{{ meeting.title or 'без названия' }}</b>{% if meeting.started_at %} ·
+      {{ meeting.started_at | local }}{% endif %}</div>
+    {# О чём была встреча — чтобы задача читалась без расшифровки. #}
+    {% if meeting.summary %}<p class="src-sum">{{ summary_gist(meeting.summary) }}</p>{% endif %}
+    <div class="pane-actions">
+      <button class="btn" hx-get="/meeting/{{ meeting.id }}{% if at %}?at={{ at | urlencode }}{% endif %}"
+              hx-target="#pane" hx-swap="innerHTML"
+              title="Расшифровка, проекты и всё, что на ней прозвучало">{{ icon('mic', 'ic-md') }}
+        {% if at %}Открыть встречу на {{ at }}{% else %}Открыть встречу{% endif %}</button>
+      <a class="btn" href="/meeting/{{ meeting.id }}/download"
+         title="Сохранить полную расшифровку в файл">{{ icon('archive', 'ic-md') }} Расшифровка .txt</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {# Нити обязательства грузятся отдельно (как чипы в панели письма): панель приходит
+     сразу, чипы — следом. #}
+  <div id="card-threads" hx-get="/item/{{ item.id }}/threads" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <details class="edit">
+    <summary>✎ Исправить</summary>
+    <form hx-post="/item/{{ item.id }}/edit" hx-target="#list" hx-swap="innerHTML">
+      <input type="hidden" name="view" value="{{ view }}">
+      <label>Тип
+        <select name="type_">
+          {% for t in ["WAITING_FOR_REPLY","NEED_MY_REPLY","MY_COMMITMENT","TASK","TO_DELEGATE","DELEGATED_TASK","INFO"] %}
+          <option value="{{ t }}" {% if item.type == t %}selected{% endif %}>{{ TYPE_LABEL.get(t, t) }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Заголовок<input name="title" value="{{ item.title }}"></label>
+      <label>Контрагент<input name="counterparty" value="{{ item.counterparty or '' }}"></label>
+      <label>Дедлайн<input name="due_date" type="date" value="{{ item.due_date or '' }}"></label>
+      <button class="btn primary" type="submit">Сохранить</button>
+    </form>
+  </details>
+
+  {% include "_remember.html" %}
+
+  {# Loaded on first open, not with the pane: most cards are opened to act, not to read
+     their past, and the journal is one query we can skip until asked. #}
+  <details class="hist" hx-get="/item/{{ item.id }}/history" hx-trigger="toggle once"
+           hx-target="this" hx-swap="outerHTML">
+    <summary>{{ icon('clock', 'ic-sm') }} История</summary>
+    <div class="hint-inline">Читаю…</div>
+  </details>
+
+  <div class="thread">
+    {# Newest on top in the commitment card (service returns chronological order). #}
+    {% for m in messages | reverse %}
+    <div class="msg {% if m.is_me %}me{% endif %}" data-email-id="{{ m.id }}"
+         data-back="/item/{{ item.id }}?view={{ view }}"
+         title="Правый клик — открыть письмо / ответить / переслать">
+      <div class="msg-head">
+        <b>{{ "Я" if m.is_me else m.who }}</b>
+        <span class="msg-date">{{ m.sent_at | local("%d.%m.%Y") }}</span>
+      </div>
+      {% if m.to_addrs or m.cc_addrs %}
+      <div class="recip-wrap">{{ macros.recipients('Кому', m.to_addrs) }}{% if m.cc_addrs %} · {{ macros.recipients('Копия', m.cc_addrs) }}{% endif %}</div>
+      {% endif %}
+      {% if m.subject %}<div class="msg-subj">{{ m.subject }}</div>{% endif %}
+      {% if m.has_html %}
+      {# Та же песочница, что в почтовой панели: плоским текстом таблицы и списки
+         рассыпаются в столбик и письмо не прочитать. #}
+      <iframe class="mail-html msg-html" sandbox referrerpolicy="no-referrer"
+              src="/email/{{ m.id }}/html"></iframe>
+      <button class="btn sm msg-plain" type="button"
+              onclick="var f=this.previousElementSibling,t=this.nextElementSibling;var h=f.style.display!=='none';f.style.display=h?'none':'';t.style.display=h?'block':'none';this.textContent=h?'Исходный вид':'Только текст';event.stopPropagation()">
+        Только текст
+      </button>
+      <div class="msg-body" style="display:none">{{ m.body or "(пусто)" }}</div>
+      {% else %}
+      <div class="msg-body">{{ m.body or "(пусто)" }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

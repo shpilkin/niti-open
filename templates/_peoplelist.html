@@ -1,0 +1,71 @@
+{# «Люди» (docs/feature-people.md): один список всех, кого пространство видело — из почты,
+   встреч и карточек. Строка без профиля существует только на экране; профиль появляется,
+   когда о человеке что-то записывают или его с кем-то объединяют. #}
+<div class="tools" id="people-tools">
+  <div class="tools-main" id="people-main">
+    {# Поиск меняет только строки и счётчик: поле, заменённое вместе со списком, теряло
+       фокус на каждой букве. #}
+    <input class="tools-search" type="search" name="q" value="{{ q }}"
+           placeholder="Найти человека" autocomplete="off"
+           hx-get="/people/list" hx-target="#people-results" hx-select="#people-results"
+           hx-swap="outerHTML" hx-select-oob="#people-count"
+           hx-trigger="input changed delay:250ms, search"
+           title="Ищет и среди тех, кто просто писал в этот ящик, но карточек не создавал">
+    <span class="tools-count" id="people-count" title="Людей в списке">{{ people_total }}</span>
+  </div>
+  {# Объединение — единственное массовое действие: выбрал строки, нажал. #}
+  <div class="tools-sel" id="people-sel" hidden>
+    <span class="tools-count"><b id="people-n">0</b> выбрано
+      <button class="act" type="button" data-people="clear" title="Снять выделение (Esc)">
+        {{ icon('x', 'ic-sm') }}</button>
+    </span>
+    <button class="tools-act primary" type="button" data-people="merge"
+            title="Считать выбранных одним человеком: заметки и личности сольются в один профиль"
+            >{{ icon('user', 'ic-sm') }} Объединить</button>
+  </div>
+</div>
+
+<div id="people-results">
+{% if not people %}
+<div class="empty">
+  <div class="empty-ic">{{ icon('user') }}</div>
+  <div class="empty-title">{% if q %}Никого не нашлось{% else %}Людей пока нет{% endif %}</div>
+  <div class="empty-sub">{% if q %}Попробуйте часть имени или адреса.{% else %}Здесь появятся все,
+    с кем пространство переписывалось, встречалось и о ком заведены обязательства.{% endif %}</div>
+</div>
+{% else %}
+<ul class="mlist" id="people-list">
+  {% for p in people %}
+  <li class="mrow prow" data-person-key="{{ p.key }}"
+      hx-get="/person?key={{ p.key | urlencode }}" hx-target="#pane" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.mrow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">
+    <label class="trow-chk prow-chk" title="Выбрать для объединения">
+      <input type="checkbox" class="trow-check prow-check" value="{{ p.key }}">
+    </label>
+    <div class="prow-body">
+      <div class="mrow-top">
+        <span class="mrow-from">{{ p.name }}{% if p.has_notes %}
+          <span class="tag" title="О человеке есть заметки">{{ icon('database', 'ic-sm') }}</span>{% endif %}</span>
+        <span class="mrow-time">{% if p.last_at %}{{ p.last_at | local("%d.%m.%Y") }}{% endif %}</span>
+      </div>
+      <div class="prow-ids">
+        {% for kind, value, display in p.identities %}
+        {% if kind == 'email' %}
+        <span class="idchip" title="Адрес">{{ icon('mail', 'ic-sm') }} {{ value }}</span>
+        {% elif (display or value) != p.name %}
+        <span class="idchip name" title="Ещё одно имя этого человека">
+          {{ icon('user', 'ic-sm') }} {{ display or value }}</span>
+        {% endif %}
+        {% endfor %}
+        {% if p.name_only %}<span class="idchip name" title="Адреса у профиля нет — почта и
+          правила отправителя недоступны, пока его не объединят с адресом">только имя</span>{% endif %}
+        {% if 'meeting' in p.sources %}<span class="idchip src">{{ icon('mic', 'ic-sm') }} со встреч</span>{% endif %}
+        {% if 'telegram' in p.sources %}<span class="idchip src">{{ icon('handset', 'ic-sm') }} Telegram</span>{% endif %}
+        {% if p.open_items %}<span class="idchip open">{{ p.open_items }} открытых</span>{% endif %}
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+</div>

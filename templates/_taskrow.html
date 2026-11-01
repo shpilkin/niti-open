@@ -1,0 +1,91 @@
+{# Task row — one ActionItem as a single dense line (docs/ux-tasks.md §4.1).
+   Used by every list of obligations: boards, weekly review, person dossier, meeting pane.
+   Children are flat and ordered ic · who · title · reason · break · src · end: the CSS
+   lays them out on one line when the list is wide and on two when it is narrow (reading
+   pane open) — see «Task rows» in static/app.css.
+
+   item        ActionItem
+   view        board key carried into the pane and the row's actions
+   since       date the wait began (waiting/delegated) — rendered as «висит Nд»
+   src         (account_id, account_name) of the source mailbox, or None
+   meeting     Meeting the item was extracted from, or None
+   vip         True when the source thread's sender is a VIP contact
+   labels      Label rows of the source thread («Метки и правила»), or None
+   actions     hover actions (done / snooze / dismiss); off inside panes
+   src_name    print the mailbox name next to its icon (board unfiltered, >1 mailbox)
+   draggable   the row can be dragged onto a sidebar board (retype / snooze / done)
+   full_reason keep the stored reason verbatim (timecode included) — the meeting pane
+   link        the row opens the item in the pane; off for rows that have no lifecycle
+               (DECISION / INFO): the pane's «Готово» would hide them for good
+   Rows with actions also get a checkbox (bulk actions, ui.js) and a date button that
+   opens the deadline popover. #}
+{% macro task_row(item, view, since=None, src=None, meeting=None, vip=False, actions=True,
+                  src_name=False, draggable=True, full_reason=False, link=True, labels=None,
+                  remind=None) %}
+{% set meta = TYPE_META.get(item.type, ("dot", "info")) %}
+{% set ds = due_state(item.due_date) %}
+{% set attn = item.status == 'overdue' or ds in ('over', 'today') %}
+{# Calendar-sourced cards are not draggable: retyping one into an email type makes no
+   sense and the server rejects it (views.set_type). Only the archive still has them. #}
+<li class="trow{% if item.status == 'overdue' or ds == 'over' %} overdue{% endif %}{% if item.status == 'snoozed' %} muted{% endif %}{% if attn %} attn{% endif %}{% if not link %} static{% endif %}"
+    data-item-id="{{ item.id }}" data-view="{{ view }}"
+    draggable="{{ 'true' if draggable and item.type != 'MEETING_PREP' else 'false' }}"
+    {% if link %}hx-get="/item/{{ item.id }}?view={{ view }}" hx-target="#pane" hx-swap="innerHTML"{% endif %}>
+  {% if actions %}
+  <label class="trow-chk"><input type="checkbox" class="trow-check" value="{{ item.id }}" aria-label="Выбрать"></label>
+  {% endif %}
+  <span class="trow-ic {{ meta[1] }}" title="{{ TYPE_LABEL.get(item.type, item.type) }}">{{ icon(meta[0], 'ic-sm') }}</span>
+  {# Direction lives in the icon (my court / their court); the column is just the name.
+     Nothing is better than a «—» placeholder — half the rows have no counterparty. #}
+  <span class="trow-who{% if item.type == 'TO_DELEGATE' %} to{% endif %}">
+    {{- item.delegate_to or 'кому?' if item.type == 'TO_DELEGATE' else (item.counterparty | who_name) -}}
+  </span>
+  <span class="trow-title">
+    {%- if vip %}<span class="tag vip" title="VIP-отправитель">{{ icon('star', 'ic-sm') }}</span>{% endif -%}
+    {{ item.title }}
+    {%- if item.user_edited %}<span class="tag" title="исправлено вручную">{{ icon('pen', 'ic-sm') }}</span>{% endif -%}
+    {%- if item.close_candidate %}<span class="tag dot" title="Предлагаю закрыть: {{ CLOSE_HINT.get(item.close_hint, 'похоже, вопрос закрыт') }}">{{ icon('dot', 'ic-sm') }}</span>{% endif -%}
+    {%- if remind is not none %}<span class="tag rem" title="Пора напомнить: движения нет {{ remind }} дн.">{{ icon('clock', 'ic-sm') }}</span>{% endif -%}
+  </span>
+  {# Метки беседы — тем же чипом, что в почте: правило про адрес видно и на задаче.
+     Не больше двух: чипы не сжимаются, и третий отъедал бы буквы у заголовка. #}
+  {% if labels %}<span class="trow-lbls">
+    {%- for l in labels[:2] %}<span class="lbl-chip mini" title="Метка: {{ l.name }}"
+          style="background:{{ l.color }}22;color:{{ l.color }};border-color:{{ l.color }}55">
+      <span class="lbl-dot" style="background:{{ l.color }}"></span>{{ l.name }}</span>{% endfor -%}
+    {%- if labels | length > 2 %}<span class="lbl-more" title="{{ labels[2:] | map(attribute='name') | join(', ') }}">+{{ labels | length - 2 }}</span>{% endif -%}
+  </span>{% endif %}
+  {% set reason = item.reason if full_reason else (item.reason | list_reason) %}
+  {% if reason %}<span class="trow-reason">{{ reason }}</span>{% endif %}
+  <span class="trow-break"></span>
+  {# Source = kind icon + tooltip; the mailbox name only when the board mixes mailboxes. #}
+  {% set kind = item.source_kind %}
+  {% if kind == 'meeting' %}
+  <span class="trow-src" title="Встреча: {{ (meeting.title if meeting else none) or 'без названия' }}">{{ icon('mic', 'ic-sm') }}</span>
+  {% elif kind == 'telegram' %}
+  <span class="trow-src" title="Telegram{% if src %} · {{ src[1] }}{% endif %}">{{ icon('sent', 'ic-sm') }}</span>
+  {%- if src_name and src %}<span class="trow-srcname">{{ src[1] }}</span>{% endif %}
+  {% elif kind == 'manual' %}
+  <span class="trow-src" title="Добавлено вручную{% if src %} · {{ src[1] }}{% endif %}">{{ icon('pen', 'ic-sm') }}</span>
+  {%- if src_name and src %}<span class="trow-srcname">{{ src[1] }}</span>{% endif %}
+  {% elif src %}
+  <span class="trow-src" title="Ящик: {{ src[1] }}">{{ icon('mail', 'ic-sm') }}</span>
+  {%- if src_name %}<span class="trow-srcname">{{ src[1] }}</span>{% endif %}
+  {% endif %}
+  <span class="trow-end">
+    {% if item.due_date %}<span class="trow-date {{ ds }}">{{ age(item.due_date) }}</span>
+    {% elif since %}<span class="trow-date">{{ wait_age(since) }}</span>{% endif %}
+    {% if actions %}
+    <span class="actions" onclick="event.stopPropagation()">
+      <button class="act ok" title="Готово" hx-post="/item/{{ item.id }}/complete" hx-vals='{"view":"{{ view }}"}' hx-target="#list" hx-swap="innerHTML">{{ icon('check', 'ic-sm') }}</button>
+      <button class="act" title="Отложить на 3 дня" hx-post="/item/{{ item.id }}/snooze" hx-vals='{"view":"{{ view }}","days":3}' hx-target="#list" hx-swap="innerHTML">{{ icon('clock', 'ic-sm') }}</button>
+      <button class="act" type="button" title="Срок" data-due-btn data-due="{{ item.due_date or '' }}">{{ icon('calendar', 'ic-sm') }}</button>
+      <button class="act" title="Не обязательство" hx-post="/item/{{ item.id }}/dismiss" hx-vals='{"view":"{{ view }}"}' hx-target="#list" hx-swap="innerHTML">{{ icon('x', 'ic-sm') }}</button>
+      {% if item.close_candidate %}
+      <button class="act" title="Оставить открытым — предложение снять" hx-post="/item/{{ item.id }}/keep" hx-vals='{"view":"{{ view }}"}' hx-target="#list" hx-swap="innerHTML">{{ icon('refresh', 'ic-sm') }}</button>
+      {% endif %}
+    </span>
+    {% endif %}
+  </span>
+</li>
+{% endmacro %}

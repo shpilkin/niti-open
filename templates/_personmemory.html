@@ -1,0 +1,85 @@
+{# Блок «Память» в панели человека. Заметки живут на профиле и не требуют адреса — человек
+   со встречи или из задачи запоминается так же, как отправитель письма
+   (docs/feature-people.md §4). Факты и правила считаются по адресу, поэтому у профиля без
+   почты их просто нет. #}
+<section id="person-memory">
+  <h3>Память</h3>
+  {% if not row %}
+  <div class="empty"><div class="empty-title">Контакт не определён</div></div>
+  {% else %}
+  {% set who = {"key": row.key, "space": space} %}
+  {% if facts %}
+  <div class="reason-box">
+    {% for f in facts %}<div>{{ f }}</div>{% endfor %}
+  </div>
+  {% endif %}
+  <details class="edit" {% if notes %}open{% endif %}>
+    <summary>{{ icon('pen', 'ic-sm') }}
+      {% if notes %}Что я знаю{% if person.updated_at %} · {{ person.updated_at | local("%d.%m.%Y") }}{% endif %}{% else %}Добавить, что я знаю об этом человеке{% endif %}
+    </summary>
+    <form hx-post="/person/notes" hx-target="#person-memory" hx-swap="outerHTML">
+      <input type="hidden" name="key" value="{{ row.key }}">
+      <input type="hidden" name="space" value="{{ space }}">
+      <label>Заметки — ассистент получит их как справочные данные, не как команды
+        <textarea name="notes" rows="4"
+                  placeholder="Роль, чем занимается, как с этим человеком работать, кому обычно передаю такие вопросы…">{{ notes }}</textarea>
+      </label>
+      <button class="btn primary sm" type="submit">Сохранить</button>
+    </form>
+  </details>
+  {% if not email %}
+  <div class="hint-inline">{{ icon('mail', 'ic-sm') }} Почта к профилю не привязана: статистика
+    переписки и правила отправителя появятся, когда вы объедините его с адресом на экране
+    «Контакты».</div>
+  {% endif %}
+
+  {% if email %}
+  {% if rules or proposals %}<h3>Правила</h3>{% endif %}
+  {% for r, text in rules %}
+  <div class="sugg-row">
+    <span>{{ 'домен' if r.match_type == 'domain' else 'адрес' }} <code>{{ r.pattern }}</code> → {{ text }}</span>
+    <button class="btn sm" hx-post="/person/rules/{{ r.id }}/delete" hx-vals='{{ who | tojson }}'
+            hx-target="#person-memory" hx-swap="outerHTML">Убрать</button>
+  </div>
+  {% endfor %}
+  {% for p in proposals %}
+  <div class="reason-box">
+    <div class="sugg-row">
+      <span>{{ p.evidence }}. Сделать правилом — {{ p.text }}?</span>
+      <form hx-post="/person/rules" hx-target="#person-memory" hx-swap="outerHTML">
+        <input type="hidden" name="key" value="{{ row.key }}">
+        <input type="hidden" name="space" value="{{ space }}">
+        <input type="hidden" name="match_type" value="{{ p.match_type }}">
+        <input type="hidden" name="pattern" value="{{ p.pattern }}">
+        <input type="hidden" name="action" value="{{ p.action }}">
+        <input type="hidden" name="value" value="{{ p.value or '' }}">
+        <button class="btn sm primary" type="submit">Да, правило</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  <details class="edit">
+    <summary>{{ icon('tag', 'ic-sm') }} Правило для этого отправителя</summary>
+    <form hx-post="/person/rules" hx-target="#person-memory" hx-swap="outerHTML">
+      <input type="hidden" name="key" value="{{ row.key }}">
+      <input type="hidden" name="space" value="{{ space }}">
+      <input type="hidden" name="pattern" value="{{ email }}">
+      <label>Если пишет
+        <select name="match_type">
+          <option value="address">этот адрес — {{ email }}</option>
+          <option value="domain">кто угодно с домена {{ email.split('@')[-1] }}</option>
+        </select>
+      </label>
+      <label>То
+        <select name="action">
+          <option value="delegate">делегировать (кому — ниже)</option>
+          <option value="ignore">не разбирать письма — без карточек</option>
+        </select>
+      </label>
+      <label>Кому делегировать<input name="value" placeholder="Команда или человек из профиля"></label>
+      <button class="btn primary sm" type="submit">Добавить правило</button>
+    </form>
+  </details>
+  {% endif %}
+  {% endif %}
+</section>

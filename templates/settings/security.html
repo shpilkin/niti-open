@@ -1,0 +1,85 @@
+{% import "_macros.html" as macros %}
+{# Подключение внешнего агента. Здесь два адресата: человек, который копирует готовую
+   строку в свой клиент, и сам клиент, который бывает разный — у Claude Code команда, у
+   Claude Desktop, Cursor и VS Code файл конфигурации, у самописного агента просто адрес
+   и заголовок. Поэтому не одна команда, а три формы одного и того же. #}
+<section class="sec" id="mcp-block">
+  <h2>Доступ для внешнего агента (MCP)</h2>
+  <p class="hint">Niti может отдавать свои данные и действия внешнему агенту —
+    Claude Code, Claude Desktop, Cursor, любому клиенту MCP. Агент получает поиск по
+    письмам, встречам и обязательствам, досье на людей, брифинг, создание и закрытие
+    карточек, черновики писем. Письма агент не отправляет: он может только положить
+    черновик в «Черновики» ящика — отправляете вы, в Niti.</p>
+
+  <div class="reason-box">
+    <span class="reason-label">{{ icon('lock', 'ic-sm') }} Что это меняет</span>
+    Адрес слушается только на этом компьютере, и обращаться к нему можно только с
+    токеном. Токен хранится хэшем — показывается один раз, при выдаче.
+  </div>
+
+  <ul class="params">
+    <li>Состояние: <b>{% if mcp_enabled %}включён{% else %}выключен{% endif %}</b></li>
+    <li>Токен: <b>{% if mcp_has_token %}выдан{% else %}не выдан{% endif %}</b></li>
+  </ul>
+  <div class="field-row">
+    <span class="field-label">Адрес</span>
+    {{ macros.copy_value(mcp_url, label='адрес') }}
+  </div>
+
+  {% if mcp_token %}
+  <div class="tr ok">
+    <div class="tr-head">Токен выдан — скопируйте сейчас</div>
+    <div class="tr-msg">
+      {{ macros.copy_value(mcp_token, label='токен') }}
+      Второй раз он не покажется. Потеряете — выдайте новый.
+
+      <div class="field-row">
+        <span class="field-label">Claude Code — одна команда в терминале</span>
+        {{ macros.copy_value('claude mcp add --transport http niti ' ~ mcp_url ~
+                             ' --header "Authorization: Bearer ' ~ mcp_token ~ '"',
+                             label='команду') }}
+      </div>
+
+      {% set config = '{\n  "mcpServers": {\n    "niti": {\n      "type": "http",\n      "url": "'
+         ~ mcp_url ~ '",\n      "headers": {\n        "Authorization": "Bearer '
+         ~ mcp_token ~ '"\n      }\n    }\n  }\n}' %}
+      <div class="field-row">
+        <span class="field-label">Claude Desktop, Cursor, VS Code и другие клиенты с файлом
+          настроек — этот кусок в их конфигурацию</span>
+        {{ macros.copy_value(config, label='конфигурацию', block=True) }}
+      </div>
+
+      <div class="field-row">
+        <span class="field-label">Свой клиент или проверка из терминала — адрес и заголовок</span>
+        {{ macros.copy_value('Authorization: Bearer ' ~ mcp_token, label='заголовок') }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="pane-actions">
+    {% if not mcp_enabled %}
+    <form hx-post="/settings/security/mcp" hx-target="#mcp-block" hx-swap="outerHTML">
+      <input type="hidden" name="action" value="enable">
+      <button class="btn primary" type="submit">{{ icon('check', 'ic-sm') }} Включить и выдать токен</button>
+    </form>
+    {% else %}
+    <form hx-post="/settings/security/mcp" hx-target="#mcp-block" hx-swap="outerHTML">
+      <input type="hidden" name="action" value="disable">
+      <button class="btn" type="submit">Выключить</button>
+    </form>
+    {% endif %}
+    <form hx-post="/settings/security/mcp" hx-target="#mcp-block" hx-swap="outerHTML"
+          hx-confirm="Выдать новый токен? Старый перестанет работать сразу.">
+      <input type="hidden" name="action" value="new-token">
+      <button class="btn" type="submit">{{ icon('refresh', 'ic-sm') }} Новый токен</button>
+    </form>
+    {% if mcp_has_token %}
+    <form hx-post="/settings/security/mcp" hx-target="#mcp-block" hx-swap="outerHTML"
+          hx-confirm="Отозвать токен и выключить доступ?">
+      <input type="hidden" name="action" value="revoke">
+      <button class="btn danger" type="submit">Отозвать</button>
+    </form>
+    {% endif %}
+  </div>
+</section>

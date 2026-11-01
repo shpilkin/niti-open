@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Env / secrets
+.env
+encryption.key
+config/config.yaml
+*.local.yaml
+
+# Data
+data/
+*.eml
+*.db
+*.db-wal
+*.db-shm
+/attachments/
+backend.log
+
+# macOS build artifacts
+/build/
+/dist/
+macos/.build/
+
+# Codex review audit log (local only)
+.codex-reviews.log
+
+# OS
+.DS_Store

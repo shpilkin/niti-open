@@ -1,0 +1,55 @@
+{% if accounts %}
+<ul class="acc-list">
+  {% for a in accounts %}
+  <li class="acc-row {% if not a.enabled %}paused{% endif %}">
+    <div class="acc-ic">
+      {%- if a.provider == "yandex" -%}Я
+      {%- elif a.provider == "imap" -%}{{ icon("gear") }}
+      {%- else -%}{{ icon("mail") }}{%- endif -%}
+    </div>
+    <div class="acc-info">
+      <div class="acc-name">{{ a.name }}</div>
+      <div class="acc-meta">{{ a.login }} ·
+        {{ a.host }}:{{ a.port }} · {{ a.folders | join(", ") }}
+      </div>
+    </div>
+    <div class="acc-status">
+      {% if not a.enabled %}
+        <span class="st-pill paused">на паузе</span>
+      {% elif a.last_error %}
+        <span class="st-pill err" title="{{ a.last_error }}">ошибка</span>
+      {% elif a.last_sync_at %}
+        <span class="st-pill ok">синк {{ a.last_sync_at | local("%H:%M") }}</span>
+      {% else %}
+        <span class="st-pill">ожидает</span>
+      {% endif %}
+    </div>
+    <div class="acc-actions">
+      {% if (spaces | default([])) | length > 1 %}
+      <select class="bulk-type" name="space_id" title="Перенести ящик в другое пространство"
+              hx-post="/settings/accounts/{{ a.id }}/move" hx-target="#spaces" hx-swap="innerHTML"
+              hx-trigger="change"
+              hx-confirm="Перенести ящик «{{ a.name }}»? Его письма и обязательства уедут вместе с ним.">
+        {% for sp in spaces %}
+        <option value="{{ sp.id }}" {% if sp.id == a.space_id %}selected{% endif %}>{{ sp.name }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+      <a class="btn sm" href="/settings/accounts/{{ a.id }}/edit">Изменить</a>
+      <button class="btn sm" hx-post="/settings/accounts/{{ a.id }}/pause"
+              hx-target="#spaces" hx-swap="innerHTML">
+        {{ "Возобновить" if not a.enabled else "Пауза" }}
+      </button>
+      <button class="btn sm danger" hx-post="/settings/accounts/{{ a.id }}/delete"
+              hx-target="#spaces" hx-swap="innerHTML"
+              hx-confirm="Удалить аккаунт и его данные синхронизации?">Удалить</button>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% if accounts | selectattr("last_error") | list %}
+<p class="hint">Наведи на «ошибка», чтобы увидеть детали. Частые причины: неверный пароль приложения или не включён IMAP.</p>
+{% endif %}
+{% else %}
+<div class="acc-empty">В этом пространстве пока нет ящиков.</div>
+{% endif %}

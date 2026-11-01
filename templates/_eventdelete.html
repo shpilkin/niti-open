@@ -1,0 +1,28 @@
+{# Удаление события (docs/feature-calendar.md §11). С участниками — выбор, разослать ли
+   им отмену; без них — просто подтверждение. #}
+<div class="pane-inner">
+  <div class="pane-head">
+    <div class="pane-title">
+      <span class="chip needreply sm">{{ icon('trash', 'ic-sm') }}</span>
+      <span>Удалить «{{ event.title or "Без названия" if event else "" }}»?</span>
+      <button class="act ev-close" type="button" onclick="closeEvent()"
+              title="Закрыть">{{ icon('x', 'ic-md') }}</button>
+    </div>
+  </div>
+  {% if error %}<div class="banner warn">{{ error }}</div>{% endif %}
+  {% if event %}
+  <form hx-post="/event/{{ event.id }}/delete" hx-target="#pane" hx-swap="innerHTML"
+        hx-disabled-elt="find button">
+    <div class="pane-actions">
+      {% if invited %}
+      <button class="btn danger" type="submit" name="notify" value="1">Удалить и сообщить участникам</button>
+      <button class="btn" type="submit" name="notify" value="">Удалить без оповещения</button>
+      {% else %}
+      <button class="btn danger" type="submit" name="notify" value="">Удалить</button>
+      {% endif %}
+      <button class="btn" type="button" hx-get="/event/{{ event.id }}" hx-target="#pane"
+              hx-swap="innerHTML">Отмена</button>
+    </div>
+  </form>
+  {% endif %}
+</div>

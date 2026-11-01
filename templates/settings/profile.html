@@ -1,0 +1,28 @@
+<section class="sec">
+  <h2>Память</h2>
+  <p class="sec-sub">Что ассистент знает обо мне в каждом пространстве: кто я, какие у меня команды
+    и чем каждая занимается — текст ниже идёт в каждый разбор треда и встречи (по нему
+    доска «Делегировать» подсказывает, кому передать задачу). Под текстом — то, что
+    запомнено с карточек и через MCP, и то, что захват нашёл в моих письмах и встречах и
+    я подтвердил. Пусто — подсказок по делегированию не будет.</p>
+</section>
+
+{% if not profile_spaces %}
+  <div class="acc-empty">Сначала создай пространство в разделе «Пространства».</div>
+{% else %}
+  {% for grp in profile_spaces %}
+  <section class="sec">
+    <h3 class="prompt-acct">{{ icon("globe") }} {{ grp.space.name }}</h3>
+    <form hx-post="/settings/profile/{{ grp.space.id }}"
+          hx-target="#profile-status-{{ grp.space.id }}" hx-swap="innerHTML">
+      <textarea class="prompt-text" name="body" rows="10" spellcheck="false"
+                placeholder="{{ profile_placeholder }}">{{ grp.value }}</textarea>
+      <div class="prompt-actions">
+        <button class="btn primary" type="submit">Сохранить</button>
+        <span class="prompt-status" id="profile-status-{{ grp.space.id }}"></span>
+      </div>
+    </form>
+    {% with space=grp.space, memory=grp.memory %}{% include "settings/_memory.html" %}{% endwith %}
+  </section>
+  {% endfor %}
+{% endif %}

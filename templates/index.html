@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block board_head %}
+{# Loud, rare things only (docs/ux-tasks.md §13): the queue status lives in the sidebar
+   footer, the tools in the list's own sticky strip. This div is also the marker ui.js
+   uses to tell a board page from mail or settings. #}
+<div id="board-banners">
+  {% if not model_configured | default(true) %}
+  <div class="banner warn">
+    <span>⚠ ИИ-модель не подключена — письма не раскладываются по «Нужен ответ / Жду ответа».</span>
+    <a href="/settings">Подключить модель →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block list %}
+{% include "_list.html" %}
+{% endblock %}

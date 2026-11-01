@@ -1,0 +1,20 @@
+{# История карточки (docs/ux-tasks.md §17): что с ней делал ассистент и что делал я.
+   Тихо: свёрнуто по умолчанию, без значков и счётчиков на доске — смена типа ничего не
+   стоит пользователю, ему важно только уметь потом посмотреть, что произошло. #}
+{# `open`: этот шаблон приходит в ответ на раскрытие блока и заменяет его целиком
+   (hx-swap="outerHTML") — без атрибута блок схлопнулся бы обратно на глазах. #}
+<details class="hist" id="history-{{ item.id }}" open>
+  <summary>{{ icon('clock', 'ic-sm') }} История</summary>
+  {% if entries %}
+  <ol class="hist-list">
+    {% for e in entries %}
+    <li class="hist-row {{ e.actor }}">
+      <span class="hist-when">{{ e.at | local("%d.%m.%Y") }}</span>
+      <span class="hist-what">{{ e.text }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="hint-inline">Пока ничего не происходило.</div>
+  {% endif %}
+</details>

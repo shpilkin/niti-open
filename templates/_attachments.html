@@ -1,0 +1,31 @@
+{% if status == "unavailable" %}
+<div class="attach">
+  <div class="attach-cap">📎 Вложения</div>
+  <div class="attach-error">
+    <span>Не удалось получить вложения — почтовый ящик недоступен.</span>
+    <button class="attach-act" type="button"
+            hx-get="/email/{{ email_id }}/attachments"
+            hx-target="closest .attach" hx-swap="outerHTML">Повторить</button>
+  </div>
+</div>
+{% elif attachments %}
+<div class="attach">
+  <div class="attach-cap">📎 Вложения ({{ attachments | length }})
+  </div>
+  <div class="attach-list">
+    {% for a in attachments %}
+    <div class="attach-item">
+      <span class="attach-ic">📄</span>
+      <span class="attach-name">{{ a.name }}</span>
+      <span class="attach-size">{{ (a.size / 1024) | round(0) | int }} КБ</span>
+      <span class="attach-acts">
+        <a class="attach-act" href="/attachment/{{ email_id }}/{{ loop.index0 }}/view"
+           target="_blank" rel="noopener" title="Открыть в браузере">Открыть</a>
+        <a class="attach-act" href="/attachment/{{ email_id }}/{{ loop.index0 }}"
+           download="{{ a.name }}" title="Скачать">Скачать</a>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

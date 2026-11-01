@@ -1,0 +1,27 @@
+{# Нити беседы: чипы привязки плюс «Новая нить» одним кликом — Нить по теме беседы,
+   беседа привязана рукой (docs/feature-topics.md §8.5). #}
+<div id="email-projects">
+<div class="attach proj-assign">
+  <div class="attach-cap">{{ icon('thread', 'ic-sm') }} Нити</div>
+  <div class="proj-chips">
+    {% for p in projects %}
+    {% set on = p.id in assigned %}
+    <form action="/project/{{ p.id }}/{{ 'unassign' if on else 'assign' }}"
+          hx-post="/project/{{ p.id }}/{{ 'unassign' if on else 'assign' }}"
+          hx-target="#email-projects" hx-swap="outerHTML" style="display:inline">
+      <input type="hidden" name="thread_id" value="{{ thread_id }}">
+      <input type="hidden" name="email_id" value="{{ email_id }}">
+      <button type="submit" class="proj-chip {% if on %}on{% endif %}">
+        {{ "✓ " if on else "+ " }}{{ p.name }}
+      </button>
+    </form>
+    {% endfor %}
+    <form action="/project/from-thread" hx-post="/project/from-thread"
+          hx-target="#email-projects" hx-swap="outerHTML" style="display:inline">
+      <input type="hidden" name="thread_id" value="{{ thread_id }}">
+      <input type="hidden" name="email_id" value="{{ email_id }}">
+      <button type="submit" class="proj-chip" title="Новая нить по теме этой беседы">{{ icon('thread', 'ic-sm') }} Новая нить</button>
+    </form>
+  </div>
+</div>
+</div>

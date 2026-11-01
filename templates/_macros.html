@@ -1,0 +1,66 @@
+{# Улики после утверждения ассистента: чип открывает строку, на которой утверждение
+   стоит (письмо, карточка, встреча, тред), в панели; у факта памяти панели нет — он
+   остаётся подписью. Один макрос на все поверхности: совет в карточке и брифинг
+   (docs/feature-card-advice.md). `view` подставляется карточке, `back` — письму и треду,
+   чтобы из них был путь назад.
+
+   Чип печатает КАКУЮ улику («Соколов, 10.09»), а не какого она вида: три «письма»
+   подряд неотличимы. Вид несёт иконка, полная подпись — в title. #}
+{# `limit` — сколько чипов показать: четыре подряд перестают читаться, и строка
+   превращается в частокол. Остальные считаются в «ещё N», с их подписями в подсказке. #}
+{% macro ev_chips(refs, view='', back='', limit=0) %}
+{%- set words = {"card": "карточка", "email": "письмо", "meeting": "встреча",
+                 "thread": "тред", "person": "человек", "fact": "память"} -%}
+{%- set shown = refs[:limit] if limit else refs -%}
+{%- for r in shown -%}
+  {%- set text = r.short or words.get(r.kind, r.kind) -%}
+  {%- if r.url -%}
+    {%- if r.kind == 'card' and view -%}{% set q = '?view=' ~ view %}
+    {%- elif r.kind in ('email', 'thread') and back -%}{% set q = '?back=' ~ (back | urlencode) %}
+    {%- else -%}{% set q = '' %}{%- endif -%}
+    <a class="ev" title="{{ r.label }}" hx-get="{{ r.url }}{{ q }}"
+       hx-target="#pane" hx-swap="innerHTML">{{ icon(r.icon, 'ic-sm') }}{{ text }}</a>
+  {%- else -%}
+    <span class="ev" title="{{ r.label }}">{{ icon(r.icon, 'ic-sm') }}{{ text }}</span>
+  {%- endif -%}
+{%- endfor -%}
+{%- if limit and refs | length > limit -%}
+  <span class="ev" title="{{ refs[limit:] | map(attribute='label') | join('; ') }}"
+        >ещё {{ refs | length - limit }}</span>
+{%- endif -%}
+{% endmacro %}
+
+{# Reusable recipient line: "Кому: a, b +N" with the overflow revealed inline on click
+   (native <details>, no JS). `addrs` is a list of {email, name} dicts. Used in commitment
+   cards, thread pane and the read pane so long To/CC lists are inspectable everywhere. #}
+{% macro recipients(label, addrs, limit=2) %}
+{%- set names = [] -%}
+{%- for a in addrs or [] -%}
+  {%- set n = (a.name or a.email or "") | trim -%}
+  {%- if n %}{{ names.append(n) or "" }}{% endif -%}
+{%- endfor -%}
+{%- if names -%}
+  {%- set head = names[:limit] | join(", ") -%}
+  {%- set rest = names[limit:] -%}
+  {%- if rest -%}
+<details class="recip"><summary onclick="event.stopPropagation()">{{ label }}: {{ head }}<span class="recip-more">&nbsp;+{{ rest | length }}</span></summary><span class="recip-rest">, {{ rest | join(", ") }}</span></details>
+  {%- else -%}
+{{ label }}: {{ head }}
+  {%- endif -%}
+{%- endif -%}
+{% endmacro %}
+
+{# Значение, которое человек пришёл скопировать: токен, адрес, готовая команда. Само
+   значение моноширинное и переносится, кнопка-«два квадрата» справа кладёт его в буфер
+   (обработчик — ui.js, по data-copy). Выделять мышью длинную команду в одну строку
+   неудобно, поэтому кнопка, а не только текст. #}
+{% macro copy_value(value, label='', big=False, block=False) %}
+<div class="copy-line">
+  <code class="mono-block{{ '' if big else ' sm' }}{{ ' block' if block }}">{{ value }}</code>
+  <button class="act copy" type="button" data-copy="{{ value }}"
+          title="Скопировать{{ ' ' ~ label if label }}" aria-label="Скопировать{{ ' ' ~ label if label }}">
+    <span class="copy-ic">{{ icon('copy', 'ic-sm') }}</span>
+    <span class="copy-ok">{{ icon('check', 'ic-sm') }}</span>
+  </button>
+</div>
+{% endmacro %}

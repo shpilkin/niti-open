@@ -1,0 +1,5 @@
+{# Переход внутри календаря: сам календарь меняется на месте, а адрес окна — вслед, чтобы
+   «обновить» и «назад» открывали то же самое. #}
+{% macro go(q) -%}
+hx-get="/calendar/grid?{{ q }}" hx-push-url="/calendar?{{ q }}" hx-target="#list" hx-swap="innerHTML"
+{%- endmacro %}

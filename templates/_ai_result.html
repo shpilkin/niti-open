@@ -1,0 +1,5 @@
+{% if error %}
+<div class="tr err"><div class="tr-head">❌ Подключение не удалось</div><div class="tr-msg">{{ error }}</div></div>
+{% else %}
+<div class="tr ok"><div class="tr-head">✅ Подключение успешно — модель «{{ model }}» доступна</div></div>
+{% endif %}

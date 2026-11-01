@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block list %}
+<div class="settings">
+  {% include "_thread_candidates.html" %}
+  {# Нити по состоянию — свёртке их открытых обязательств (attention.fold,
+     docs/feature-topics.md §8.2, §8.5): на мне · затухла · пора напомнить · жду · идёт ·
+     отложена · тихая. Пустых секций нет. #}
+  <div class="sec">
+    <h2>Нити</h2>
+    {% if not sections %}<div class="acc-empty">Пока ни одной нити. Нить — тема, которую
+      Niti собирает из бесед, встреч и обязательств; создайте её ниже или из беседы,
+      встречи, карточки одним кликом.</div>{% endif %}
+    {% for label, rows in sections %}
+    <ul class="trows">
+      <li class="tsec">{{ label }} <span class="tsec-n">{{ rows | length }}</span></li>
+    </ul>
+    <ul class="acc-list">
+      {% for t in rows %}
+      <li class="acc-row">
+        <div class="acc-ic">{{ icon('thread') }}</div>
+        <div class="acc-info">
+          <div class="acc-name"><span class="st-pill {{ t.css }}">{{ t.label }}</span>
+            <a href="/project/{{ t.project_id }}">{{ t.name }}</a></div>
+          <div class="acc-meta">
+            {% if t.open_cards %}на мне {{ t.on_me }} · чужой ход {{ t.theirs }}{% if t.quiet_days is not none %} · движение {{ t.quiet_days }} дн. назад{% endif %}{% else %}открытых обязательств нет{% endif %}
+          </div>
+        </div>
+        <div class="acc-actions">
+          <a class="btn sm" href="/project/{{ t.project_id }}">Открыть</a>
+          <a class="btn sm" href="/project/{{ t.project_id }}/edit">Изменить</a>
+          <form method="post" action="/project/{{ t.project_id }}/delete" style="display:inline"
+                onsubmit="return confirm('Удалить нить? Беседы, встречи и обязательства останутся, папка на диске тоже.')">
+            <button class="btn sm danger" type="submit">Удалить</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </div>
+
+  <div class="sec">
+    <h2>Новая нить</h2>
+    <p class="sec-sub">Нить создаётся в пространстве «{{ space.name }}» и собирает беседы,
+      встречи и обязательства только из него. Беседы привязываются сами по описанию и
+      ключевым словам; своё — одним кликом из панели письма, встречи или обязательства.</p>
+    <form class="compose-form" method="post" action="/project">
+      <label>Название<input name="name" required></label>
+      <label>Ключевые слова — имена клиентов, продуктов, людей, через запятую
+        <input name="aliases" placeholder="Иванов, Ромашка, тендер-2026">
+      </label>
+      <p class="sec-sub">Ключевое слово в теме или тексте письма и в расшифровке встречи
+        привязывает их к нити без модели.</p>
+      <label class="check-row">
+        <input type="checkbox" name="include_meetings" value="1" checked>
+        Учитывать встречи — записи разговоров тоже раскладываются в эту нить
+      </label>
+      <details class="edit">
+        <summary>Описание и папка</summary>
+        <label>Описание — что относится к нити и что НЕ относится; по нему модель
+          прикрепляет беседы
+          <textarea name="prompt" rows="4"
+            placeholder="Например: Разработка продукта Альфа командой (фичи, баги, архитектура). НЕ включает поддержку и сопровождение пользователей."></textarea>
+        </label>
+        <label>Папка на диске — пусто: общий корень
+          <div class="folder-row">
+            <input id="project-folder" name="folder_path"
+                   placeholder="/Users/…/Projects/Alpha">
+            <button type="button" class="btn" onclick="pickProjectFolder()">Выбрать…</button>
+          </div>
+        </label>
+        <p class="sec-sub">Общий корень:
+          {% if projects_root %}<code>{{ projects_root }}</code>{% else %}не задан — нити без
+          своей папки никуда не выгружаются{% endif %} ·
+          <a href="/settings/section/general" hx-get="/settings/section/general"
+             hx-target="#list" hx-swap="innerHTML" hx-push-url="true">изменить</a></p>
+      </details>
+      <button class="btn primary" type="submit">Создать нить</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

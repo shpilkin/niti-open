@@ -1,0 +1,90 @@
+{% import "_taskrow.html" as tr %}
+{# The toolbar (docs/ux-tasks.md §13): ONE sticky strip of fixed height, rendered with the
+   list because everything in it is per board — the grouping and its default label, «На
+   доску» only on «Разобрать». Normal mode: grouping, the mailbox (only when the space has
+   several), «+ Задача». Selection mode (ui.js flips the halves while a row is checked):
+   the count and the bulk actions in the same strip — the rows never move, so a shift-click
+   lands where it was aimed. #}
+{% set accs = accounts | default([]) %}
+<div class="tools" id="board-tools">
+  <div class="tools-main" id="tools-main">
+    {% if groupable | default(false) %}
+    <label class="tools-dd" title="Как сгруппировать строки">
+      <span class="tools-lbl">Группировать:</span>
+      <select class="tools-group" onchange="boardGroupPick(this)">
+        <option value=""{% if not group %} selected{% endif %}>{{ group_default_label }}</option>
+        {% for key, label in group_labels | default([]) %}
+        <option value="{{ key }}"{% if group == key %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <span class="tools-chev">{{ icon('chevron', 'ic-sm') }}</span>
+    </label>
+    {% endif %}
+    {# One mailbox in the space = nothing to filter by. The choice is remembered
+       server-side (cookie) for every board. #}
+    {% if accs | length > 1 %}
+    <label class="tools-dd" id="board-filter" title="Показывать обязательства одного ящика">
+      <span class="tools-lbl">Ящик:</span>
+      <select class="tools-account" onchange="boardFilterPick(this)">
+        <option value=""{% if not active_account %} selected{% endif %}>все ящики</option>
+        {% for a in accs %}
+        <option value="{{ a.id }}"{% if active_account == a.id|string %} selected{% endif %}>{{ a.name }}</option>
+        {% endfor %}
+      </select>
+      <span class="tools-chev">{{ icon('chevron', 'ic-sm') }}</span>
+    </label>
+    {% endif %}
+    <button class="tools-add" type="button" data-quick-add title="Новая задача (n)">
+      {{ icon('pen', 'ic-sm') }} Задача <kbd class="qadd-key">n</kbd>
+    </button>
+  </div>
+  {# One action for all checked rows; no undo for bulk — the toast says how many. #}
+  <div class="tools-sel" id="bulk-bar" hidden>
+    <span class="tools-count"><b id="bulk-n">0</b> выбрано
+      <button class="act" type="button" data-bulk="clear" title="Снять выделение (Esc)">{{ icon('x', 'ic-sm') }}</button>
+    </span>
+    {% if view == 'triage' %}
+    <button class="tools-act primary" type="button" data-bulk="confirm" title="На доску">{{ icon('check', 'ic-sm') }} <span>На доску</span></button>
+    {% endif %}
+    <button class="tools-act" type="button" data-bulk="complete" title="Готово">{{ icon('check', 'ic-sm') }} <span>Готово</span></button>
+    <button class="tools-act" type="button" data-bulk="snooze" title="Отложить на 3 дня">{{ icon('clock', 'ic-sm') }} <span>Отложить 3д</span></button>
+    <button class="tools-act" type="button" data-bulk="dismiss" title="Не обязательство">{{ icon('x', 'ic-sm') }} <span>Не обязательство</span></button>
+    <label class="tools-dd" title="Сменить тип у выбранных">
+      <select class="tools-type" data-bulk-type>
+        <option value="">Тип…</option>
+        {% for t in ["NEED_MY_REPLY","WAITING_FOR_REPLY","MY_COMMITMENT","TASK","TO_DELEGATE","DELEGATED_TASK"] %}
+        <option value="{{ t }}">{{ TYPE_LABEL.get(t, t) }}</option>
+        {% endfor %}
+      </select>
+      <span class="tools-chev">{{ icon('chevron', 'ic-sm') }}</span>
+    </label>
+  </div>
+</div>
+{% include "_quickadd.html" %}
+{% if not items %}
+  <div class="empty">
+    <div class="empty-ic">✦</div>
+    <div class="empty-title">Всё под контролем</div>
+    <div class="empty-sub">Здесь пока ничего нет.</div>
+  </div>
+{% else %}
+{# Section counts are over the WHOLE board (views.board), so a header on page 2 still
+   says how many rows the section holds, not how many landed on this page. #}
+{% set sec_counts = dict(sections | default([])) %}
+{# The mailbox name is only worth its width when the board mixes mailboxes. #}
+{% set show_src_name = (not active_account) and (accs | length > 1) %}
+<ul class="trows">
+  {% for r in rows %}
+  {% if r.section and (loop.first or loop.previtem.section != r.section) %}
+  <li class="tsec{% if group %} named{% endif %}">{{ r.section }} <span class="tsec-n">{{ sec_counts.get(r.section, '') }}</span></li>
+  {% endif %}
+  {{ tr.task_row(r.item, view, since=r.since, remind=r.remind,
+                 src=(item_sources | default({})).get(r.item.id),
+                 meeting=(item_meetings | default({})).get(r.item.source_meeting_id),
+                 vip=r.item.source_thread_id in (vip_threads | default([])),
+                 labels=(item_labels | default({})).get(r.item.id),
+                 src_name=show_src_name) }}
+  {% endfor %}
+</ul>
+{% endif %}
+{% include "_pager.html" %}

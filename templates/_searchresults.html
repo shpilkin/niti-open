@@ -1,0 +1,41 @@
+{% import "_searchrow.html" as sr %}
+{% if not q %}
+  <div class="empty">
+    <div class="empty-ic">{{ icon('inbox', 'ic-lg') }}</div>
+    <div class="empty-title">Поиск по всему</div>
+    <div class="empty-sub">Письма, обязательства, встречи и их расшифровки, календарь,
+      люди, проекты. Можно уточнять: <code>от:петров смета</code>,
+      <code>тема:договор</code>, <code>где:встречи</code>, <code>после:01.08</code>.</div>
+  </div>
+{% elif not total %}
+  <div class="empty">
+    <div class="empty-ic">{{ icon('inbox', 'ic-lg') }}</div>
+    <div class="empty-title">Ничего не нашлось по «{{ q }}»</div>
+    <div class="empty-sub">Попробуйте другое слово или снимите уточнения.</div>
+  </div>
+{% else %}
+<div class="search-chips">
+  {% for kind, label in chips %}
+  <button class="proj-chip{% if kind in active_kinds %} on{% endif %}" type="button"
+          hx-get="/search" hx-target="#list" hx-swap="innerHTML"
+          hx-vals='{{ {"q": (q ~ " где:" ~ label|lower) if kind not in active_kinds
+                       else q.replace("где:" ~ label|lower, "").strip()} | tojson }}'>
+    {{ label }}
+  </button>
+  {% endfor %}
+  <button class="proj-chip{% if by_date %} on{% endif %}" type="button"
+          title="Сначала свежие, а не самые подходящие"
+          hx-get="/search" hx-target="#list" hx-swap="innerHTML"
+          hx-vals='{{ {"q": q, "sort": "" if by_date else "date"} | tojson }}'>
+    {{ icon('clock', 'ic-sm') }} По дате
+  </button>
+</div>
+<div class="search-head">Найдено: {{ total }}{% if capped %} и больше{% endif %} по «{{ q }}»</div>
+
+{% for kind, label, rows in groups %}
+<div class="tsec">{{ label }} <span class="tsec-n">{{ rows | length }}</span></div>
+<ul class="srows">
+  {% for r in rows %}{{ sr.result_row(r, KIND_LABEL) }}{% endfor %}
+</ul>
+{% endfor %}
+{% endif %}

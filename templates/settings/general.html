@@ -1,0 +1,115 @@
+<section class="sec">
+  <h2>Папки нитей</h2>
+  <p class="sec-sub">Общий корень: нить, которой не задали свою папку, получает
+    <code>&lt;корень&gt;/&lt;название&gt;</code>. Туда складываются письма проекта, заметки о
+    встречах и сводки. Пусто — такие нити просто никуда не выгружаются.</p>
+  <form class="edit" hx-post="/settings/general/projects-root"
+        hx-target="#projects-root-status" hx-swap="innerHTML">
+    <label>Общий корень проектов
+      <div class="folder-row">
+        <input id="projects-root" name="projects_root" value="{{ projects_root or '' }}"
+               placeholder="/Users/…/Documents/Проекты">
+        <button type="button" class="btn"
+                onclick="pickProjectFolder('projects-root')">Выбрать…</button>
+      </div>
+    </label>
+    <div class="period-row">
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="projects-root-status" class="hint-inline"></span>
+    </div>
+    <p class="hint">Не указывайте папку с git-репозиторием: экспорт перезаписывает
+      <code>README.md</code>, и репозиторий потерял бы свой. Такой путь не сохранится.</p>
+  </form>
+</section>
+
+<section class="sec">
+  <h2>Обработка обязательств</h2>
+  <p class="sec-sub">Глубина первичного разбора: ИИ извлекает обязательства и задачи только
+    из бесед, где последнее сообщение не старше указанного срока. Это ограничивает нагрузку
+    при первом подключении ящика (иначе разбор запускается на всю историю).</p>
+  <form class="edit" hx-post="/settings/general/extract-depth"
+        hx-target="#extract-depth-status" hx-swap="innerHTML">
+    <div class="period-row">
+      <span>Разбирать беседы за последние</span>
+      <input type="number" name="days" value="{{ extract_backfill_days }}" min="0" max="3650"
+             style="width:90px">
+      <span>дн.</span>
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="extract-depth-status" class="hint-inline"></span>
+    </div>
+    <p class="hint">30 дней ≈ 1 месяц (значение по умолчанию). <b>0</b> — без ограничения
+      (разбирать всю историю; на больших ящиках это долго и дорого). Меняется на лету,
+      без перезапуска; применяется к беседам, которые ещё не разобраны.</p>
+  </form>
+
+  <h2>Движение обязательств</h2>
+  <p class="sec-sub">Обязательство «идёт», пока по нему что-то происходит. Движение — это
+    новое письмо в его беседе (в любую сторону), ваше действие с ним (готово, отложить,
+    смена типа, срок, «оставить») или правка ассистентом при переразборе. У обязательств
+    со встреч и из Telegram беседы нет — у них движение только ваше действие.</p>
+  <form class="edit" hx-post="/settings/general/idle-days"
+        hx-target="#idle-days-status" hx-swap="innerHTML">
+    <div class="period-row">
+      <span>Считать обязательство затухшим после</span>
+      <input type="number" name="days" value="{{ idle_days }}" min="0" max="3650"
+             style="width:90px">
+      <span>дн. без движения</span>
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="idle-days-status" class="hint-inline"></span>
+    </div>
+    <p class="hint">Затухшее обязательство ассистент предлагает закрыть: строка получает
+      точку и уходит в секцию «Предлагаю закрыть», закрываете вы. Если затухли все
+      обязательства Нити, затухает и она — на её странице появится вопрос «ещё актуальна?».
+      <b>«Нужен ответ» не затухает никогда</b>: он ваш, пока вы не ответили. <b>0</b> — не
+      считать никогда. 30 дней — значение по умолчанию.</p>
+  </form>
+  <form class="edit" hx-post="/settings/general/remind-days"
+        hx-target="#remind-days-status" hx-swap="innerHTML">
+    <div class="period-row">
+      <span>Напоминать мне о чужом ходе после</span>
+      <input type="number" name="days" value="{{ remind_days }}" min="0" max="3650"
+             style="width:90px">
+      <span>дн. без движения</span>
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="remind-days-status" class="hint-inline"></span>
+    </div>
+    <p class="hint">Только для «жду ответа» и «передано»: если человек молчит дольше
+      указанного, строка получает пометку «пора напомнить» и поднимается в брифинг.
+      Напоминание — вам; людям Niti ничего не отправляет. Если у обязательства стоит своя
+      дата («Отложить до…» или поле в «Исправить»), действует она. Лестница: жду →
+      пора напомнить → затухло; первый порог должен быть меньше второго. <b>0</b> — не
+      напоминать. 14 дней — значение по умолчанию.</p>
+  </form>
+</section>
+
+<section class="sec">
+  <h2>Прочие параметры</h2>
+  {% if cfg %}
+  <ul class="params">
+    <li>Интервал синхронизации: <b>{{ cfg.poll_interval_seconds }}</b> сек.</li>
+    <li>Нормализация +tag в адресах: <b>{{ "вкл" if cfg.normalize_plus_tags else "выкл" }}</b></li>
+  </ul>
+  <p class="hint">Пока редактируются в <code>config/config.yaml</code>. Редактирование из UI — в планах.</p>
+  {% else %}
+  <div class="acc-empty"><code>config/config.yaml</code> не найден.</div>
+  {% endif %}
+</section>
+
+<section class="sec">
+  <h2>Список писем</h2>
+  <p class="sec-sub">Группировка по переписке: в списке одна строка на тему — последнее
+    письмо и счётчик, сколько их в переписке всего. Как в классических почтовых клиентах.</p>
+  <form class="edit" hx-post="/settings/general/mail-grouping"
+        hx-target="#mail-grouping-status" hx-swap="innerHTML">
+    <div class="period-row">
+      <label class="check-row">
+        <input type="checkbox" name="grouped" value="1" {% if mail_grouped %}checked{% endif %}>
+        Группировать письма по теме
+      </label>
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="mail-grouping-status" class="hint-inline"></span>
+    </div>
+    <p class="hint">Счётчик считает письма той же переписки, которые есть в открытом ящике:
+      в «Отправленных» это только свои, поэтому число там меньше, чем во «Входящих».</p>
+  </form>
+</section>

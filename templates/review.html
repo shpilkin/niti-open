@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block list %}
+<div class="settings">
+
+  {% import "_taskrow.html" as tr %}
+  {% macro item_cards(rows) %}
+  <ul class="trows">
+    {% for it in rows %}{{ tr.task_row(it, 'review', actions=False, draggable=False) }}{% endfor %}
+  </ul>
+  {% endmacro %}
+
+  <div class="sec">
+    <h2>Сделано за неделю — {{ done | length }}</h2>
+    {% if done %}{{ item_cards(done) }}
+    {% else %}<p class="sec-sub">Ничего не закрыто за 7 дней.</p>{% endif %}
+  </div>
+
+  <div class="sec">
+    <h2>Висит дольше недели — {{ stuck | length }}</h2>
+    <p class="sec-sub">Жду ответа / делегировано: без движения с прошлой недели.
+      Открой карточку — ассистент подготовит фолоу-ап.</p>
+    {% if stuck %}{{ item_cards(stuck) }}
+    {% else %}<p class="sec-sub">Пусто — никто не молчит.</p>{% endif %}
+  </div>
+
+  <div class="sec">
+    <h2>Просрочено — {{ overdue | length }}</h2>
+    {% if overdue %}{{ item_cards(overdue) }}
+    {% else %}<p class="sec-sub">Просроченного нет.</p>{% endif %}
+  </div>
+
+</div>
+{% endblock %}

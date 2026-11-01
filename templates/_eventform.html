@@ -1,0 +1,60 @@
+{# Новое событие или правка (docs/feature-calendar.md §11). Приглашения — выбор при каждом
+   сохранении, по умолчанию «только себе»: участники без рассылки записываются в описание. #}
+<div class="pane-inner">
+  <div class="pane-head">
+    <div class="pane-title">
+      <span class="chip waiting sm">{{ icon('calendar', 'ic-sm') }}</span>
+      <span>{{ "Исправить событие" if event else "Новое событие" }}</span>
+      <button class="act ev-close" type="button" onclick="closeEvent()"
+              title="Закрыть без сохранения">{{ icon('x', 'ic-md') }}</button>
+    </div>
+  </div>
+  {% if error %}<div class="banner warn">{{ error }}</div>{% endif %}
+  {% if not locked | default(false) %}
+  {% if not event and not targets %}
+  <p class="hint-inline">В этом пространстве нет календаря, в который Niti умеет писать:
+    нужен ящик с календарём на сервере (например, Яндекс), который уже присылал события.</p>
+  {% else %}
+  <form class="compose-form" hx-post="{{ '/event/%s' % event.id if event else '/calendar/event' }}"
+        hx-target="#pane" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]">
+    <label>Название<input name="title" value="{{ f.title }}" required autofocus
+                          placeholder="Например: созвон по смете"></label>
+    {% if not event %}
+    <label>Календарь
+      <select name="target">
+        {% for t in targets %}<option value="{{ t.key }}" {% if t.key == f.target %}selected{% endif %}>{{ t.label }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <label class="check-row"><input type="checkbox" name="all_day" value="1"
+      {% if f.all_day %}checked{% endif %} data-ev-allday> Весь день</label>
+    <div class="period-row">
+      <input type="date" name="day" value="{{ f.day }}" required aria-label="Дата">
+      <input type="time" name="start" value="{{ f.start }}" step="300" aria-label="Начало"
+             data-ev-time {% if f.all_day %}hidden{% endif %}>
+      <input type="time" name="end" value="{{ f.end }}" step="300" aria-label="Конец"
+             data-ev-time {% if f.all_day %}hidden{% endif %}>
+    </div>
+    <label>Место или ссылка на звонок<input name="location" value="{{ f.location }}"></label>
+    <label>Участники<span class="ac">
+      <input name="participants" value="{{ f.participants }}" autocomplete="off"
+             placeholder="адреса через запятую" data-recipients>
+      <span class="ac-drop"></span>
+    </span></label>
+    <label>Описание<textarea name="description" rows="4">{{ f.description }}</textarea></label>
+    <div>
+      <label class="check-row"><input type="radio" name="invite" value=""
+        {% if not f.get('invite') %}checked{% endif %}>
+        {% if f.invited %}Не оповещать участников{% else %}Только себе — без приглашений{% endif %}</label>
+      <label class="check-row"><input type="radio" name="invite" value="1"
+        {% if f.get('invite') %}checked{% endif %}>
+        {% if f.invited %}Отправить участникам изменения{% else %}Разослать приглашения участникам{% endif %}</label>
+    </div>
+    <div class="pane-actions">
+      <button class="btn primary" type="submit">Сохранить</button>
+      <button class="btn" type="button" onclick="closeEvent()">Отмена</button>
+    </div>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>

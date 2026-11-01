@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Niti — {{ board_title | default(None) or VIEW_TITLES.get(view, "") }}</title>
+  <!-- htmx лежит рядом, а не на CDN: без него не работает НИ ОДНА кнопка, при этом
+       страница рисуется как обычно и ошибки не видно — нажатие просто не доходит до
+       сервера. Настольному приложению нельзя зависеть в этом от сети. -->
+  <script src="/static/htmx-1.9.12.min.js?v={{ ASSET_V }}"></script>
+  <link rel="stylesheet" href="/static/tokens.css?v={{ ASSET_V }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ ASSET_V }}">
+</head>
+<body data-view="{{ active_key | default(view) }}">
+  <div class="app" id="app">
+    <!-- `active` is injected at request time from body[data-view] (see ui.js
+         htmx:configRequest), so a countsChanged refresh always highlights the CURRENT
+         board — not whatever board was active when the page first loaded. -->
+    <aside class="sidebar" id="sidebar"
+           hx-get="/ui/sidebar"
+           hx-trigger="countsChanged from:body"
+           hx-swap="innerHTML">
+      {% include "_sidebar.html" %}
+    </aside>
+    <script>
+      /* Свёрнутые ящики и прокрутка меню живут в браузере, и сервер о них не знает.
+         Применяем здесь, до первой отрисовки: ui.js подключён в конце страницы, и меню
+         успевало показаться развёрнутым и в начале списка, а потом прыгнуть. */
+      try {
+        JSON.parse(localStorage.getItem("collapsedAccounts") || "[]").forEach(function (id) {
+          var group = document.querySelector('[data-acct-group="' + id + '"]');
+          if (group) group.style.display = "none";
+          var arrow = document.querySelector('[data-acct-toggle="' + id + '"] .acct-arrow');
+          if (arrow) arrow.textContent = "▸";
+        });
+      } catch (e) { /* приватное окно — просто покажем всё */ }
+      /* Прокрутка — после свёртки: она меняет высоту списка. */
+      try {
+        var at = parseInt(sessionStorage.getItem("navScroll") || "0", 10);
+        var nav = document.querySelector(".sidebar .nav");
+        if (nav && at > 0) nav.scrollTop = at;
+      } catch (e) { /* приватное окно — начнём сверху */ }
+    </script>
+
+    <main class="main">
+      <header class="main-head">
+        <button class="icon-btn" id="toggle-sidebar" title="Скрыть/показать панель (⌘\)">☰</button>
+        <h1>{{ title_override | default(None) or board_title | default(None)
+               or VIEW_TITLES.get(view, "") }}</h1>
+        {# Действие экрана — рядом с заголовком и поиском: шапка не уезжает при
+           прокрутке, а полоса инструментов ниже уезжала вместе со списком. #}
+        {% block head_actions %}{% endblock %}
+        <input class="search-box" type="search" name="q" id="search-box"
+               placeholder="Поиск по всему (⌘K)" autocomplete="off"
+               hx-get="/search" hx-target="#list" hx-swap="innerHTML"
+               hx-trigger="input changed delay:300ms, search">
+      </header>
+      <div class="content">
+        <!-- Stable region above the list: survives #list swaps (filters, confirm,
+             search), so the agent/queue bar doesn't vanish on those actions. -->
+        <div id="board-head">{% block board_head %}{% endblock %}</div>
+        <div id="list">
+          {% block list %}{% endblock %}
+        </div>
+      </div>
+    </main>
+
+    <div class="splitter" id="splitter" title="Перетащите, чтобы изменить ширину"></div>
+
+    <section class="pane" id="pane">
+      <div class="pane-empty">
+        <div class="pane-empty-ic">✦</div>
+        Выберите письмо, чтобы прочитать.
+      </div>
+    </section>
+  </div>
+
+  <!-- ⌘K palette: one entry point for finding anything. Hidden until opened; its
+       results come from the same search as the results page. -->
+  <div class="palette-back" id="palette" hidden>
+    <div class="palette" role="dialog" aria-label="Поиск">
+      <div class="palette-input">
+        {{ icon('inbox', 'ic-sm') }}
+        <input type="search" id="palette-q" name="q" autocomplete="off" spellcheck="false"
+               placeholder="Найти письмо, обязательство, встречу, человека…"
+               hx-get="/search/palette" hx-target="#palette-results" hx-swap="innerHTML"
+               hx-trigger="input changed delay:150ms">
+        <kbd>Esc</kbd>
+      </div>
+      <div class="palette-results" id="palette-results">
+        {% include "_palette_results.html" ignore missing with context %}
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/ui.js?v={{ ASSET_V }}"></script>
+</body>
+</html>

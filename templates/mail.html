@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{# Пишем из открытого ящика — значит и «От» должно быть его: иначе рабочее письмо
+   уходит с личного адреса, и это замечают уже у получателя. #}
+{% block head_actions %}
+<button class="icon-btn" hx-target="#pane" hx-swap="innerHTML"
+        title="Написать письмо" aria-label="Написать письмо"
+        hx-get="/compose{% if sync_account_id %}?account_id={{ sync_account_id }}{% endif %}">{{
+  icon('compose', 'ic-md') }}</button>
+{% endblock %}
+{% block list %}
+{% if sync_account_id %}
+<div class="tools">
+  <div class="tools-main">
+    {% set sync_title = "Синхронизировать почту этого ящика" %}
+    <button class="btn sm" hx-post="/mail/account/{{ sync_account_id }}/sync"
+            hx-target="#mail-sync-status" hx-swap="innerHTML"
+            title="{{ sync_title }}">{{ icon('refresh', 'ic-sm') }} Синхронизировать</button>
+    <span id="mail-sync-status" class="hint-inline"></span>
+  </div>
+</div>
+{% endif %}
+{% if view == "drafts" %}
+<div id="draft-list" hx-get="/mail/account/{{ sync_account_id }}/drafts/list"
+     hx-trigger="countsChanged from:body" hx-swap="innerHTML">
+  {% include "_draftlist.html" %}
+</div>
+{% else %}
+{# Отправка меняет список, а сама его не перерисовывает: письмо уходило, счётчик в меню
+   сдвигался, а строки не прибавлялось — и письмо выглядело потерянным. На countsChanged
+   вешать нельзя: его шлёт и открытие письма, список схлопывался бы под рукой. #}
+<div id="mail-list" hx-get="{{ list_url }}" hx-trigger="composeSent from:body"
+     hx-swap="innerHTML">
+  {% include "_maillist.html" %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{# Кандидаты в Нити — предложения агента через MCP (docs/feature-topics.md §9.1 п. 1):
+   имя, довод, улики; «Да» делает Нить живой и привязывает улики как `agent`, «Нет»
+   снимает её и запоминает улики, чтобы сигнал не всплывал снова. Тот же `.sugg-row`,
+   что у предложений памяти. #}
+{% if proposed %}
+<div class="sec">
+  <div class="reason-box">
+    <span class="reason-label">{{ icon('thread', 'ic-sm') }} Кандидаты — {{ proposed | length }}</span>
+    {% for p in proposed %}
+    {% set prop = p.proposal or {} %}
+    <div class="sugg-row">
+      <div>
+        <b>{{ p.name }}</b>{% if prop.why %} — {{ prop.why }}{% endif %}
+        <span class="hint-inline">предложил {{ prop.by or 'агент' }}</span>
+        <div>
+          {% for e in prop.evidence or [] %}
+          {% if e.kind == 'meeting' %}<a class="ev" hx-get="/meeting/{{ e.id }}" hx-target="#pane" hx-swap="innerHTML" title="Встреча">{{ icon('mic', 'ic-sm') }} {{ e.title }}</a>
+          {% elif e.kind == 'card' %}<a class="ev" hx-get="/item/{{ e.id }}" hx-target="#pane" hx-swap="innerHTML" title="Обязательство">{{ icon('flag', 'ic-sm') }} {{ e.title }}</a>
+          {% else %}<span class="ev" title="Беседа">{{ icon('mail', 'ic-sm') }} {{ e.title }}</span>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <form method="post" action="/project/{{ p.id }}/verdict">
+        <button class="btn sm success" type="submit" name="verdict" value="yes">{{ icon('check', 'ic-sm') }} Да</button>
+        <button class="btn sm" type="submit" name="verdict" value="no">{{ icon('x', 'ic-sm') }} Нет</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,19 @@
+{# Queue status of the extraction agent, in the sidebar footer (docs/ux-tasks.md §13):
+   system state is not a strip over the board. Polls itself — fast while busy — and is
+   re-created whenever the sidebar re-renders (countsChanged), so no second trigger here.
+   Sync / reprocess answer with this fragment and say the rest in a toast. #}
+{% set _busy = agent.pending or agent.stalled %}
+{% set _state = 'busy' if agent.pending else ('err' if agent.failed else ('warn' if agent.stalled else 'ok')) %}
+<div id="agent-status" class="agent-status" hx-get="/ui/agent-status" hx-swap="outerHTML"
+     hx-trigger="every {{ 3 if _busy else 20 }}s" title="ИИ-агент: очередь разбора писем и встреч">
+  <span class="agent-dot {{ _state }}">{{ icon('dot', 'ic-sm') }}</span>
+  <span class="agent-text">
+    {%- if agent.pending %}в разборе: {{ agent.pending }}{% else %}очередь пуста{% endif -%}
+    {%- if agent.stalled %} · ждут модель: {{ agent.stalled }}{% endif -%}
+    {%- if agent.failed %} · ошибок: {{ agent.failed }}{% endif -%}
+  </span>
+  {% if agent.failed or agent.stalled %}
+  <button class="act" type="button" title="Разобрать заново" hx-post="/actions/reprocess"
+          hx-target="#agent-status" hx-swap="outerHTML">{{ icon('refresh', 'ic-sm') }}</button>
+  {% endif %}
+</div>

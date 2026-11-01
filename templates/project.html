@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block list %}
+{% import "_taskrow.html" as tr %}
+{# Страница Нити (docs/feature-topics.md §8.5): состояние — свёртка её открытых
+   обязательств, ничего своего Нить не хранит. Баннер затухшей Нити спрашивает, актуальна
+   ли она; три ответа — §8.4. #}
+<div class="proj-head">
+  <div class="proj-prompt">{{ project.prompt or "Без описания" }}</div>
+  {% if attention %}
+  <div class="proj-state">
+    <span class="st-pill {{ attention.css }}">{{ attention.label }}</span>
+    <span>с {{ project.created_at | local("%d.%m.%Y") }} · бесед {{ n_threads }} · встреч {{ meetings | length }}
+      {%- if attention.open_cards %} · на мне {{ attention.on_me }} · чужой ход {{ attention.theirs }}{% if attention.quiet_days is not none %} · движение {{ attention.quiet_days }} дн. назад{% endif %}
+      {%- else %} · открытых обязательств нет{% endif %}</span>
+  </div>
+  {% endif %}
+  <div class="proj-actions">
+    <a class="btn sm" href="/project/{{ project.id }}/edit">Изменить</a>
+    <button class="btn sm" hx-post="/project/{{ project.id }}/export"
+            hx-target="#export-result" hx-swap="innerHTML"
+            title="Записать письма и вложения нити в папку (только добавление, ничего не удаляется)">
+      {{ icon("database") }} Выгрузить в папку</button>
+    <span id="export-result" class="hint-inline"></span>
+    <span class="proj-folder" title="{{ folder or '' }}">{{ icon('folder', 'ic-sm') }}
+      {{ folder or "папка не задана" }}</span>
+  </div>
+</div>
+
+{% if attention and attention.state == 'idle' %}
+<div class="banner warn thread-ask">
+  <span>Тема появилась {{ project.created_at | local("%d.%m") }}, открытых обязательств
+    {{ attention.open_cards }}, последние {{ attention.quiet_days }} дн. ничего не
+    происходило. Она ещё актуальна?</span>
+  <span class="acts">
+    <form method="post" action="/project/{{ project.id }}/keep">
+      <button class="btn sm success" type="submit" title="Отсчёт тишины заново, предложения закрыть сняты">Продолжать</button>
+    </form>
+    <form method="post" action="/project/{{ project.id }}/snooze">
+      <input type="date" name="until" required>
+      <button class="btn sm" type="submit" title="Одна дата на нить; обязательства свои даты не теряют">Отложить до</button>
+    </form>
+    <form method="post" action="/project/{{ project.id }}/dismiss-open"
+          onsubmit="return confirm('Снять с досок все открытые обязательства нити? Это не закрытие: они снимаются, вернуть можно через архив.')">
+      <button class="btn sm" type="submit">Снять с досок</button>
+    </form>
+  </span>
+</div>
+{% elif attention and attention.state == 'snoozed' %}
+<div class="banner warn thread-ask">
+  <span>Отложена до {{ project.snoozed_until | local("%d.%m.%Y") }}: до этого дня не требует внимания.</span>
+  <span class="acts">
+    <form method="post" action="/project/{{ project.id }}/keep">
+      <button class="btn sm success" type="submit">Продолжать сейчас</button>
+    </form>
+  </span>
+</div>
+{% endif %}
+
+{% if on_me %}
+<div class="sec">
+  <h2>На мне — {{ on_me | length }}</h2>
+  <ul class="trows">
+    {% for it, st in on_me %}{{ tr.task_row(it, 'today', actions=False, draggable=False) }}{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if theirs %}
+<div class="sec">
+  <h2>Жду — {{ theirs | length }}</h2>
+  <ul class="trows">
+    {% for it, st in theirs %}{{ tr.task_row(it, 'today', since=st.moved_at.date(),
+        remind=(st.quiet_days if st.fresh == remind_state else None),
+        actions=False, draggable=False) }}{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if mine %}
+<div class="sec">
+  <h2>Мои обещания и задачи — {{ mine | length }}</h2>
+  <ul class="trows">
+    {% for it, st in mine %}{{ tr.task_row(it, 'today', actions=False, draggable=False) }}{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if decisions %}
+<div class="sec">
+  <h2>Решения — {{ decisions | length }}</h2>
+  <ul class="trows">
+    {% for it in decisions %}{{ tr.task_row(it, 'today', actions=False, draggable=False, link=False, full_reason=True) }}{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if meetings %}
+<div class="sec">
+  <h2>Встречи</h2>
+  <ul class="mlist">
+    {% for m in meetings %}
+    <li class="mrow" hx-get="/meeting/{{ m.id }}" hx-target="#pane" hx-swap="innerHTML"
+        onclick="document.querySelectorAll('.mrow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">
+      <div class="mrow-top">
+        <span class="mrow-from">{{ icon('mic', 'ic-sm') }} {{ m.title or "Без названия" }}</span>
+        <span class="mrow-time">{{ m.started_at | local("%d.%m %H:%M") }}</span>
+      </div>
+      {# Конспект встречи по этой нити — его пишет маршрутизация для каждой нити отдельно. #}
+      {% if digests.get(m.id) %}<div class="mrow-prev">{{ digests[m.id][:240] }}</div>
+      {% elif m.summary %}<div class="mrow-prev">{{ m.summary[:160] }}</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% include "_maillist.html" %}
+{% endblock %}

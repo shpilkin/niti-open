@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block board_head %}
+<div class="mail-toolbar">
+  <button class="btn" hx-post="/meetings/scan" hx-target="#list" hx-swap="innerHTML"
+          hx-vals='{"filter": "{{ "unrouted" if unrouted else "" }}"}'
+          title="Забрать новые транскрипты из папки обмена">
+    {{ icon('mic', 'ic-md') }} Проверить папку
+  </button>
+</div>
+{% endblock %}
+{% block list %}
+{% include "_meetinglist.html" %}
+{% endblock %}

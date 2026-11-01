@@ -1,0 +1,19 @@
+{% if identities %}
+<div class="chips-row">
+  {% for ident in identities %}
+  <span class="ident-chip">
+    {{ ident.email }}
+    <button class="chip-x" title="Удалить"
+            hx-post="/settings/identities/{{ ident.id }}/delete"
+            hx-target="#identities" hx-swap="innerHTML">{{ icon('x') }}</button>
+  </span>
+  {% endfor %}
+</div>
+{% else %}
+<div class="acc-empty">Не задано ни одного адреса. Добавь хотя бы один — без этого логика обязательств не работает.</div>
+{% endif %}
+<form class="ident-add" hx-post="/settings/identities" hx-target="#identities" hx-swap="innerHTML"
+      hx-on::after-request="this.reset()">
+  <input name="email" type="email" placeholder="ваш@адрес.ру" required>
+  <button class="btn sm primary" type="submit">Добавить</button>
+</form>

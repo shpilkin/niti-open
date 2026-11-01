@@ -1,0 +1,18 @@
+<nav class="settings-tabs">
+  {% for s in sections %}
+    {% if s.coming_soon %}
+    <span class="tab soon" title="Раздел скоро будет">
+      <span class="tab-ic">{{ icon(s.icon) }}</span>{{ s.title }}
+      <span class="soon-badge">скоро</span>
+    </span>
+    {% else %}
+    {# Swap only #list (tabs + body); the sidebar/ПОЧТА is left untouched, so it
+       doesn't flicker when switching tabs. #}
+    <a class="tab {% if active == s.key %}active{% endif %}" href="/settings/section/{{ s.key }}"
+       hx-get="/settings/section/{{ s.key }}" hx-target="#list" hx-swap="innerHTML"
+       hx-push-url="true">
+      <span class="tab-ic">{{ icon(s.icon) }}</span>{{ s.title }}
+    </a>
+    {% endif %}
+  {% endfor %}
+</nav>

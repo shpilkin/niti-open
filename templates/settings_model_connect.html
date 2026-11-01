@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block list %}
+{% set is_edit = conn is not none %}
+{% set kind = conn.kind if is_edit else preset.kind %}
+{% set action = "/settings/models/" ~ conn.id if is_edit else "/settings/models" %}
+
+<div class="wizard">
+  <a class="back" href="/settings/section/ai">← Назад к моделям</a>
+  <h2>{{ "Изменить модель" if is_edit else "Подключить: " ~ preset.label }}</h2>
+  {% if not is_edit and preset.note %}<p class="sec-sub">{{ preset.note }}</p>{% endif %}
+  {% if not is_edit and preset.deeplink %}
+  <a class="btn deeplink" href="{{ preset.deeplink }}" target="_blank" rel="noopener">
+    {{ preset.deeplink_label }} ↗
+  </a>
+  {% endif %}
+
+  <form id="model-form" class="wz-form" method="post" action="{{ action }}">
+    <input type="hidden" name="provider" value="{{ conn.provider if is_edit else provider }}">
+    <input type="hidden" name="connection_id" value="{{ conn.id if is_edit else '' }}">
+
+    <label>Название
+      <input name="name" value="{{ conn.name if is_edit else preset.label }}" required>
+    </label>
+
+    {% if kind == "openai" %}
+    <label>base_url шлюза
+      <input name="base_url" placeholder="https://.../v1"
+             value="{{ conn.base_url if is_edit and conn.base_url else preset.base_url }}">
+    </label>
+    {% else %}
+    <input type="hidden" name="base_url" value="">
+    {% endif %}
+
+    <label>ID модели
+      <input name="model" placeholder="{{ preset.model_hint }}"
+             value="{{ conn.model if is_edit else preset.model_hint }}" required>
+    </label>
+
+    {% if kind == "openai" %}
+    <label class="check-row">
+      <input type="checkbox" name="no_thinking" value="1"
+             {% if is_edit and conn.no_thinking %}checked{% endif %}>
+      Отвечать без рассуждений
+    </label>
+    <span class="key-status">Рассуждающая модель тратит лимит токенов на размышления, и на
+      ответ его не остаётся. Шлюз получит <code>chat_template_kwargs.enable_thinking=false</code>
+      — это понимают llama.cpp, vLLM, SGLang; другие шлюзы могут ответить ошибкой, тогда её
+      покажет проверка подключения.</span>
+    {% endif %}
+
+    <label>{{ preset.key_label }}
+      <input name="api_key" type="password" autocomplete="off"
+             placeholder="{{ 'задан — пусто = не менять' if is_edit else '' }}"
+             {% if not is_edit and kind != 'anthropic' %}required{% endif %}>
+      {% if kind == 'anthropic' %}
+      <span class="key-status">Можно оставить пустым — тогда берётся <code>ANTHROPIC_API_KEY</code> из .env.</span>
+      {% endif %}
+    </label>
+
+    <div class="wz-actions">
+      <button class="btn" type="button"
+              hx-post="/settings/model/test" hx-include="#model-form"
+              hx-target="#test-result" hx-swap="innerHTML">Проверить подключение</button>
+      <button class="btn primary" type="submit">Сохранить</button>
+    </div>
+  </form>
+
+  <div id="test-result" class="test-result">
+    <span class="muted">Проверь подключение перед сохранением.</span>
+  </div>
+</div>
+{% endblock %}

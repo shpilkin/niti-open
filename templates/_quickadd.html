@@ -1,0 +1,24 @@
+{# Quick-add — a ghost row at the top of the list (docs/ux-tasks.md §13): no frame, the
+   height of the toolbar. Shown on «Сегодня» and «Мои задачи»; on the other boards hidden
+   until «+ Задача» or `n` reveals it (ui.js). One line -> a confirmed TASK on «Мои задачи»
+   of the open space; the date phrase is parsed out (docs/ux-tasks.md §4.4). The board key
+   travels in hx-vals so the reply re-renders THIS board; the toast says where the task went.
+
+   Кнопка срока — тот же выбор дат, что у строки (ui.js), но до создания карточки: дата
+   едет в скрытом поле. На «Сегодня» поле заполнено сегодняшним днём, иначе набранная там
+   задача уезжает на другую доску и пропадает из виду (docs/ux-tasks.md §17.7). #}
+<form class="qadd" id="quick-add" hx-post="/items/quick" hx-target="#list" hx-swap="innerHTML"
+      hx-vals='{"view": "{{ view }}"}'{% if view not in ('today', 'commitments') %} hidden data-on-demand{% endif %}>
+  <span class="qadd-ic">{{ icon('pen', 'ic-sm') }}</span>
+  <input class="qadd-input" name="text" type="text" required autocomplete="off"
+         placeholder="Новая задача… «позвонить Пете до пятницы»">
+  <input type="hidden" name="due" value="{{ qadd_due | default('') }}">
+  {# picked=0 — это предзаполнение доски: набранная в строке дата («до пятницы») его
+     перебивает. Выбранная руками дата ставит picked=1 и перебивает строку. #}
+  <input type="hidden" name="due_picked" value="0">
+  <button class="qadd-due{% if qadd_due | default('') %} set{% endif %}" type="button"
+          data-qadd-due data-due="{{ qadd_due | default('') }}" title="Срок задачи">
+    {{ icon('calendar', 'ic-sm') }}<span class="qadd-due-lbl">{{ age(qadd_due_date) if qadd_due_date else 'срок' }}</span>
+  </button>
+  <kbd class="qadd-key" title="n — в поле ввода">n</kbd>
+</form>

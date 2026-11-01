@@ -1,0 +1,41 @@
+{% import "_macros.html" as macros %}
+{% if not messages %}
+  <div class="pane-empty">Тред пуст.</div>
+{% else %}
+<div class="pane-inner">
+  {% if back %}
+  <button class="back-link" type="button" onclick="window.paneNav('/email/{{ back }}')">
+    ← К письму
+  </button>
+  {% endif %}
+  <div class="pane-title">{{ messages[-1].subject or "(без темы)" }}</div>
+  <div class="pane-sub"><span>{{ messages | length }} писем в треде · нажмите письмо, чтобы открыть</span></div>
+  {% set tback = ('/email/' ~ back) | urlencode if back else '' %}
+  <div class="pane-actions">
+    <button class="btn primary" hx-get="/reply_thread/{{ thread_id }}{% if tback %}?back={{ tback }}{% endif %}"
+            hx-target="#pane" hx-swap="innerHTML">{{ icon('reply', 'ic-md') }} Ответить</button>
+    <button class="btn" hx-get="/reply_thread/{{ thread_id }}?all=1{% if tback %}&back={{ tback }}{% endif %}"
+            hx-target="#pane" hx-swap="innerHTML"
+            title="Ответить отправителю и всем получателям">{{ icon('reply', 'ic-md') }} Всем</button>
+    <button class="btn" hx-get="/forward_thread/{{ thread_id }}{% if tback %}?back={{ tback }}{% endif %}"
+            hx-target="#pane" hx-swap="innerHTML">{{ icon('forward', 'ic-md') }} Переслать</button>
+  </div>
+  <div class="thread">
+    {% for m in messages %}
+    <div class="msg {% if m.is_me %}me{% endif %}"
+         hx-get="/email/{{ m.id }}" hx-target="#pane" hx-swap="innerHTML"
+         title="Открыть это письмо">
+      <div class="msg-head">
+        <b>{{ "Я" if m.is_me else m.who }}</b>
+        <span class="msg-date">{{ m.sent_at | local }}</span>
+      </div>
+      {% if m.to_addrs or m.cc_addrs %}
+      <div class="recip-wrap">{{ macros.recipients('Кому', m.to_addrs) }}{% if m.cc_addrs %} · {{ macros.recipients('Копия', m.cc_addrs) }}{% endif %}</div>
+      {% endif %}
+      {% if m.subject %}<div class="msg-subj">{{ m.subject }}</div>{% endif %}
+      <div class="msg-body">{{ (m.body or "(пусто)")[:600] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

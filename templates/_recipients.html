@@ -1,0 +1,12 @@
+{# Подсказка получателей: адреса из переписки этого пространства. #}
+{% if suggestions %}
+<div class="ctx-menu ac-list" role="listbox">
+  {% for s in suggestions %}
+  <div class="ctx-item ac-item{% if loop.first %} ac-cur{% endif %}" role="option"
+       data-email="{{ s.email }}">
+    {% if s.name %}<span class="ac-name">{{ s.name }}</span>{% endif %}
+    <span class="ac-addr">{{ s.email }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

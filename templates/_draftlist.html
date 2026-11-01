@@ -1,0 +1,29 @@
+{% if not drafts %}
+  <div class="empty">
+    <div class="empty-ic">✦</div>
+    <div class="empty-title">Здесь пусто</div>
+    <div class="empty-sub">Недописанное письмо ждёт здесь, пока вы к нему не вернётесь.</div>
+  </div>
+{% else %}
+<ul class="mlist">
+  {% for d in drafts %}
+  {# Черновик открывается тем же композером, что и новое письмо, — иначе их было бы два. #}
+  <li class="mrow" hx-get="/compose?draft_id={{ d.id }}" hx-target="#pane" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.mrow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">
+    <div class="mrow-top">
+      <span class="mrow-from">→ {{ d.to_line or "—" }}</span>
+      <span class="mrow-time">{{ d.updated_at | local("%d.%m %H:%M") }}</span>
+    </div>
+    <div class="mrow-subj">{{ d.subject or "(без темы)" }}</div>
+    {% if d.body %}<div class="mrow-prev">{{ d.body[:200] }}</div>{% endif %}
+    <div class="pane-actions">
+      <button class="btn sm danger" hx-post="/drafts/{{ d.id }}/delete?account_id={{ drafts_account_id }}"
+              hx-target="#draft-list" hx-swap="innerHTML"
+              hx-confirm="Удалить черновик? Восстановить его будет нельзя."
+              onclick="event.stopPropagation()">{{
+        icon('trash', 'ic-sm') }} Удалить</button>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

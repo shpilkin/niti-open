@@ -1,0 +1,111 @@
+{# Доски пространства (docs/ux-tasks.md §17.5). Пресеты нельзя удалить и нельзя пересобрать
+   по типам: у них выверенные вручную секции и порядок, которые общий фильтр не
+   воспроизводит. Их прячут, переименовывают, переставляют — или копируют как свою. #}
+<ul class="board-list">
+  {% for b in board_specs %}
+  <li class="board-row{% if b.hidden %} off{% endif %}">
+    <form class="board-form" hx-post="/settings/boards/{{ b.key }}"
+          hx-target="#boards-body" hx-swap="innerHTML">
+      <div class="board-head">
+        <span class="board-ic">{{ icon(b.icon) }}</span>
+        <input class="board-name" name="name" value="{{ b.name }}" aria-label="Имя доски">
+        <label class="board-sel" title="Иконка в меню">
+          <select name="icon">
+            {% for name in board_icons %}
+            <option value="{{ name }}"{% if b.icon == name %} selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="board-chk" title="Скрытая доска не показывается в меню, но остаётся по адресу">
+          <input type="checkbox" name="hidden" value="1" {% if b.hidden %}checked{% endif %}>
+          скрыть
+        </label>
+        <button class="btn sm primary" type="submit">Сохранить</button>
+      </div>
+
+      {% if b.builtin %}
+      <div class="board-note">
+        {{ icon('lock', 'ic-sm') }} Встроенная доска: у неё свои секции и порядок строк.
+        Чтобы отобрать типы по-своему — скопируйте её.
+      </div>
+      {% else %}
+      <div class="board-body">
+        <div class="board-types">
+          {% for value, label in board_types %}
+          <label class="board-chk">
+            <input type="checkbox" name="types" value="{{ value }}"
+                   {% if value in (b.types or []) %}checked{% endif %}>
+            {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+        <div class="board-opts">
+          <label class="board-sel">Условие
+            <select name="condition">
+              {% for value, label in board_conditions.items() %}
+              <option value="{{ value }}"{% if (b.condition or '') == value %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="board-sel">Порядок
+            <select name="sort">
+              {% for value, label in board_sorts.items() %}
+              <option value="{{ value }}"{% if (b.sort or '') == value %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+      </div>
+      {% endif %}
+    </form>
+    <div class="board-acts">
+      {% if b.builtin %}
+      <button class="btn sm" hx-post="/settings/boards/{{ b.key }}/clone"
+              hx-target="#boards-body" hx-swap="innerHTML"
+              title="Создать свою доску с теми же типами">Скопировать как свою</button>
+      {% else %}
+      <button class="btn sm danger" hx-post="/settings/boards/{{ b.key }}/delete"
+              hx-target="#boards-body" hx-swap="innerHTML"
+              hx-confirm="Удалить доску «{{ b.name }}»? Карточки останутся, уйдёт только отбор.">
+        {{ icon('trash', 'ic-sm') }} Удалить</button>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+{% if board_custom < board_max %}
+<details class="edit">
+  <summary>{{ icon('pen', 'ic-sm') }} Новая доска</summary>
+  <form hx-post="/settings/boards-new" hx-target="#boards-body" hx-swap="innerHTML">
+    <label>Название<input name="name" placeholder="Например: жду от подрядчиков" required></label>
+    <label>Иконка
+      <select name="icon">
+        {% for name in board_icons %}<option value="{{ name }}">{{ name }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="board-types">
+      {% for value, label in board_types %}
+      <label class="board-chk"><input type="checkbox" name="types" value="{{ value }}"> {{ label }}</label>
+      {% endfor %}
+    </div>
+    <label>Условие
+      <select name="condition">
+        {% for value, label in board_conditions.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Порядок
+      <select name="sort">
+        {% for value, label in board_sorts.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" type="submit">Создать</button>
+    <p class="hint">Без типов доска показывала бы всё и ничего не значила — выберите хотя бы
+      один. Своих досок можно завести {{ board_max }}: меню просит счётчик по каждой при
+      любом действии с карточкой.</p>
+  </form>
+</details>
+{% else %}
+<p class="hint">Своих досок уже {{ board_custom }} — это предел ({{ board_max }}).
+  Удалите ненужную, чтобы завести новую.</p>
+{% endif %}

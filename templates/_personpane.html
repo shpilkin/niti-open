@@ -1,0 +1,91 @@
+{# Профиль человека: что о нём знает пространство (обязательства, письма, встречи) и что
+   о нём помнит ассистент. Открывается из «Людей» по ключу и из карточки по имени/адресу
+   (docs/feature-people.md §4). #}
+<div class="pane-inner">
+  {% if back_item %}
+  <button class="back-link" type="button"
+          hx-get="/item/{{ back_item }}" hx-target="#pane" hx-swap="innerHTML">
+    ← К обязательству</button>
+  {% endif %}
+
+  {% if not row %}
+  <div class="pane-head">
+    <div class="pane-title"><span class="chip info sm">{{ icon('user') }}</span> {{ q }}</div>
+  </div>
+  <div class="empty"><div class="empty-title">Не за что зацепиться</div>
+    <div class="empty-sub">У этой карточки нет ни адреса, ни имени, по которому можно
+      узнать человека.</div></div>
+  {% else %}
+  <div class="pane-head">
+    <div class="pane-title"><span class="chip info sm">{{ icon('user') }}</span> {{ row.name }}</div>
+    <div class="pane-sub">
+      <span>{{ items | length }} открытых · {{ emails | length }} писем ·
+        {{ meetings | length }} встреч</span>
+    </div>
+    {# Личности профиля: адреса и имена, под которыми человек приходит из разных мест.
+       Крестик отвязывает — починка объединения, о котором пожалели позже. #}
+    <div class="prow-ids">
+      {% for kind, value, display in row.identities %}
+      <span class="idchip{% if kind == 'name' %} name{% endif %}">
+        {{ icon('mail' if kind == 'email' else 'user', 'ic-sm') }}
+        {{ value if kind == 'email' else (display or value) }}
+        {% if row.person_id and row.identities | length > 1 %}
+        <button class="chip-x" type="button" title="Отвязать от этого профиля"
+                hx-post="/person/detach" hx-target="#pane" hx-swap="innerHTML"
+                hx-vals='{{ {"key": row.key, "kind": kind, "value": value, "space": space} | tojson }}'
+                >{{ icon('x', 'ic-sm') }}</button>
+        {% endif %}
+      </span>
+      {% endfor %}
+      {% if row.name_only %}
+      <span class="idchip warn" title="Почта к профилю не привязана">адреса нет</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div hx-get="/person/memory" hx-vals='{{ {"key": row.key, "item": back_item or ""} | tojson }}'
+       hx-trigger="load" hx-swap="outerHTML"></div>
+
+  {% if items %}
+  <h3>Открытые обязательства</h3>
+  {% import "_taskrow.html" as tr %}
+  <ul class="trows">
+    {% for it in items %}{{ tr.task_row(it, 'today', actions=False, draggable=False) }}{% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty"><div class="empty-title">Открытых обязательств нет</div></div>
+  {% endif %}
+
+  {% if meetings %}
+  <h3>Встречи</h3>
+  <ul class="mlist">
+    {% for m in meetings %}
+    <li class="mrow" hx-get="/meeting/{{ m.id }}" hx-target="#pane" hx-swap="innerHTML">
+      <div class="mrow-top">
+        <span class="mrow-from">{{ icon('mic', 'ic-sm') }} {{ m.title or "Без названия" }}</span>
+        <span class="mrow-time">{{ m.started_at | local("%d.%m.%Y") }}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if emails %}
+  <h3>Недавняя переписка</h3>
+  <div class="thread">
+    {% for e in emails %}
+    <div class="msg {% if e.direction != 'inbound' %}me{% endif %}"
+         hx-get="/email/{{ e.id }}" hx-target="#pane" hx-swap="innerHTML"
+         title="Открыть письмо">
+      <div class="msg-head">
+        <b>{{ "Я" if e.direction != 'inbound' else (e.from_name or e.from_addr) }}</b>
+        <span class="msg-date">{{ e.sent_at | local("%d.%m.%Y") }}</span>
+      </div>
+      {% if e.subject %}<div class="msg-subj">{{ e.subject }}</div>{% endif %}
+      <div class="msg-body">{{ (e.body_text or "")[:200] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>

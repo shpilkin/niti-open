@@ -1,0 +1,29 @@
+<section class="sec">
+  <h2>Подключить почту</h2>
+  <p class="sec-sub">Выбери провайдера — подставим настройки и подскажем, как создать пароль
+    приложения. Ящик попадает в пространство, которое выберешь в форме.</p>
+  <div class="prov-cards">
+    {% for key, p in providers.items() %}
+    <a class="prov-card" href="/settings/connect/{{ key }}">
+      <span class="prov-card-ic prov-{{ key }}">
+        {%- if key == "yandex" -%}Я
+        {%- elif key == "imap" -%}{{ icon("gear") }}
+        {%- else -%}{{ icon("mail") }}{%- endif -%}
+      </span>
+      <span class="prov-card-label">{{ p.label }}</span>
+      <span class="prov-card-go">→</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="sec">
+  <h2>Пространства</h2>
+  <p class="sec-sub">Пространство — контур: «Работа», «Личное». Ящики, Telegram-боты и
+    встречи внутри него живут на одних досках, с одним досье на человека и одной моделью;
+    между пространствами ничего не пересекается. Модель пространства видит всё, что в нём
+    есть — рабочему провайдеру не стоит показывать личную почту.</p>
+  <div id="spaces">
+    {% include "_spaces.html" %}
+  </div>
+</section>

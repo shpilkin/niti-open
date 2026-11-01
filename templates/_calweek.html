@@ -1,0 +1,36 @@
+{# Часы дня или недели: шкала слева, столбцы дней, блоки встреч. Подпись часа стоит на
+   его линии, как в Календаре; ноль не подписан — он над сеткой. #}
+<div class="cal-grid">
+  <div class="cal-hours">
+    {% for h in range(24) %}<div class="cal-hour">{% if h %}<span>{{ "%02d:00" | format(h) }}</span>{% endif %}</div>{% endfor %}
+    {% if week.now_pct is not none %}
+    <span class="cal-now-label" style="--top:{{ week.now_pct }}%">{{ week.now_label }}</span>
+    {% endif %}
+  </div>
+  {% for d in week.days %}
+  <div class="cal-day{% if d.today %} today{% endif %}{% if d.weekend %} weekend{% endif %}"
+       data-date="{{ d.date }}">
+    {% for p in d.events %}
+    {% set ev = p.event %}
+    {% set c = color_of(ev) %}
+    {% set short = p.height < 45 %}
+    {% set place = (ev.location or "").strip() %}
+    <button class="cal-ev{% if short %} short{% endif %}{% if ev.cancelled_at %} cancelled{% endif %}{% if p.end <= now %} past{% endif %}"
+            type="button" hx-get="/event/{{ ev.id }}" hx-target="#pane" hx-swap="innerHTML"
+            style="--top:{{ p.top_pct }}%;--h:{{ p.height_pct }}%;--left:{{ p.left_pct }}%;--w:{{ p.width_pct }}%;--lines:{{ p.title_lines }};--lines-alone:{{ p.title_lines_alone }};--ev:var(--cal-{{ c }});--ev-bg:var(--cal-{{ c }}-bg)"
+            title="{{ p.start.strftime('%H:%M') }}–{{ p.end.strftime('%H:%M') }} · {{ ev.title or 'Без названия' }}{% if place %} · {{ place }}{% endif %}{% if ev.cancelled_at %} · отменена{% endif %}">
+      {# Время начала сверху, под ним тема: конец виден по сетке, а строка «14:30–15:30» в
+         узкой колонке переносилась и забирала место темы. #}
+      <span class="cal-ev-body">
+        <span class="cal-ev-time">{{ p.start.strftime('%H:%M') }}</span>
+        <span class="cal-ev-title">{{ ev.title or "Без названия" }}</span>
+        {% if not short and place and not place.startswith('http') %}<span class="cal-ev-loc">{{ place }}</span>{% endif %}
+      </span>
+    </button>
+    {% endfor %}
+    {% if d.today and week.now_pct is not none %}
+    <div class="cal-now" style="--top:{{ week.now_pct }}%"></div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>

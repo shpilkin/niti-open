@@ -1,0 +1,16 @@
+{
+  "name": "waiting_for_estimate",
+  "today": "2026-06-27",
+  "messages": [
+    {
+      "is_me": true,
+      "who": "Я",
+      "sent_at": "2026-06-23T10:00:00+00:00",
+      "subject": "Смета по проекту X",
+      "body": "Иван, привет. Отправляю смету во вложении. Подтверди, пожалуйста, до конца недели."
+    }
+  ],
+  "expected": [
+    { "type": "WAITING_FOR_REPLY", "counterparty": "Иван" }
+  ]
+}

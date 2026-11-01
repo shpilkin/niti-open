@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block list %}
+<div class="settings">
+  <div class="sec">
+    <a class="back" href="/project/{{ project.id }}">← К нити</a>
+    <h2>Изменить нить</h2>
+    <div class="proj-acc-line">
+      Пространство:
+      <span class="src-tag">{{ icon("globe", "ic-sm") }} {{ space.name if space else "—" }}</span>
+      <span class="hint-inline">— нить собирает беседы, встречи и обязательства только этого пространства</span>
+    </div>
+    <form class="compose-form" method="post" action="/project/{{ project.id }}">
+      <label>Название<input name="name" value="{{ project.name }}" required></label>
+      <label>Папка на диске — пусто: общий корень из настроек
+        <div class="folder-row">
+          <input id="project-folder" name="folder_path" value="{{ project.folder_path or '' }}">
+          <button type="button" class="btn" onclick="pickProjectFolder()">Выбрать…</button>
+        </div>
+      </label>
+      <label>Описание — что относится к нити и что НЕ относится; по нему модель прикрепляет беседы
+        <textarea name="prompt" rows="6">{{ project.prompt }}</textarea>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" name="include_meetings" value="1"
+               {% if project.include_meetings %}checked{% endif %}>
+        Учитывать встречи — записи разговоров тоже раскладываются в эту нить
+      </label>
+      <label>Ключевые слова — имена клиентов, продуктов, людей, через запятую
+        <input name="aliases" value="{{ (project.aliases or []) | join(', ') }}"
+               placeholder="Иванов, Ромашка, тендер-2026">
+      </label>
+      <p class="sec-sub">Ключевое слово в теме или тексте письма и в расшифровке встречи привязывает их к
+        нити без модели. Название нити работает так же, но во встрече — только если
+        произнесено в первые секунды записи.</p>
+      <p class="sec-sub">После изменения описания письма за последние 90 дней будут
+        переразобраны под новые правила.</p>
+      <button class="btn primary" type="submit">Сохранить</button>
+    </form>
+    <div class="proj-actions" style="margin-top:16px">
+      <button class="btn" hx-post="/project/{{ project.id }}/export"
+              hx-target="#export-result" hx-swap="innerHTML"
+              title="Записать письма и вложения нити в папку (только добавление, ничего не удаляется)">
+        {{ icon("database") }} Выгрузить в папку</button>
+      <span id="export-result" class="hint-inline"></span>
+    </div>
+    <p class="sec-sub">Выгрузка добавляет письма и вложения в папку нити. Файлы
+      никогда не удаляются автоматически — даже если снять беседу с нити.</p>
+  </div>
+</div>
+{% endblock %}

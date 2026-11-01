@@ -1,0 +1,15 @@
+{% from "_mailrow.html" import mail_row %}
+{% if not emails %}
+  <div class="empty">
+    <div class="empty-ic">✦</div>
+    <div class="empty-title">Здесь пусто</div>
+    <div class="empty-sub">Письма появятся после синхронизации почты.</div>
+  </div>
+{% else %}
+<ul class="mlist">
+  {% for e in emails %}
+  {{ mail_row(e, email_labels, view, (thread_sizes | default({})).get(e.id)) }}
+  {% endfor %}
+</ul>
+{% endif %}
+{% include "_pager.html" %}

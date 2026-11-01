@@ -1,0 +1,71 @@
+<section class="sec">
+  <h2>Разбор встреч</h2>
+  <p class="sec-sub">Записи разговоров передаёт приложение-диктофон: оно кладёт файл в
+    папку обмена, Niti забирает его, разбирает и раскладывает по проектам, у которых
+    включено «учитывать встречи».</p>
+  <form class="compose-form" hx-post="/settings/meetings" hx-target="#meetings-status"
+        hx-swap="innerHTML">
+    <label>Модель, которая разбирает встречи
+      <select name="model_id">
+        <option value="">— модель пространства встречи —</option>
+        {% for c in connections %}
+        <option value="{{ c.id }}" {% if meetings_model_id == c.id|string %}selected{% endif %}
+                {% if not c.enabled %}disabled{% endif %}>
+          {{ c.name }} · {{ c.model }}{% if not c.enabled %} (выключено){% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Пространство, в которое попадают новые встречи — его доски, его проекты, его промпт
+      <select name="space_id">
+        {% for sp in spaces %}
+        <option value="{{ sp.id }}" {% if meetings_space_id == sp.id|string %}selected{% endif %}>
+          {{ sp.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <span class="hint-inline">Уже записанную встречу можно перенести в другое пространство
+        из её панели.</span>
+    </label>
+    <label>Папка архива записей — от неё считаются пути к расшифровкам
+      <input name="asr_root" value="{{ asr_root or '' }}" placeholder="/Users/…/ASR">
+    </label>
+    <div class="period-row">
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span id="meetings-status" class="hint-inline"></span>
+    </div>
+  </form>
+  <p class="hint">Подключения моделей заводятся в <a href="/settings/section/ai"
+    hx-get="/settings/section/ai" hx-target="#list" hx-swap="innerHTML"
+    hx-push-url="true">Настройки → AI / извлечение</a>. Если выбранное подключение
+    удалить или выключить, встречи не встанут — разбор вернётся к модели ящика.</p>
+  <p class="hint">Куда складывать проекты без своей папки — общий корень проектов
+    в <a href="/settings/section/general" hx-get="/settings/section/general"
+    hx-target="#list" hx-swap="innerHTML" hx-push-url="true">Настройки → Общие</a>.</p>
+  <p class="hint">Папка обмена: <code>{{ inbox_dir }}</code>. Niti в архив записей не пишет
+    ничего — только читает.</p>
+</section>
+
+<section class="sec">
+  <h2>Нити, которые участвуют</h2>
+  {% if meeting_projects %}
+  <ul class="acc-list">
+    {% for p in meeting_projects %}
+    <li class="acc-row">
+      <div class="acc-ic">{{ icon('folder') }}</div>
+      <div class="acc-info">
+        <div class="acc-name">{{ p.name }}</div>
+        <div class="acc-meta">
+          {{ p.folder_path or "общий корень проектов" }}
+          {% if p.aliases %}· ключевые слова: {{ p.aliases | join(", ") }}{% endif %}
+        </div>
+      </div>
+      <div class="acc-actions"><a class="btn sm" href="/project/{{ p.id }}/edit">Изменить</a></div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="acc-empty">Ни одна нить не помечена «учитывать встречи» — раскладывать
+    некуда. Отметьте нужные в настройках нити.</div>
+  {% endif %}
+</section>

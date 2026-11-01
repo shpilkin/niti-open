@@ -1,0 +1,25 @@
+{# Page switcher. Renders only when there's more than one page.
+   Context vars: p_page (0-based), p_total, p_size, p_url (base URL w/o page),
+   p_target (optional: if set -> htmx swap into that selector; else plain <a href>). #}
+{% set p_total = p_total | default(0) %}
+{% set p_size = p_size | default(50) %}
+{% if p_total > p_size %}
+{% set pages = (p_total + p_size - 1) // p_size %}
+{% set p_url = p_url | default('') %}
+{% set sep = '&' if '?' in p_url else '?' %}
+<div class="pager">
+  {% if p_page > 0 %}
+  <a class="pager-btn"
+     {% if p_target %}hx-get="{{ p_url }}{{ sep }}page={{ p_page - 1 }}" hx-target="{{ p_target }}" hx-swap="innerHTML"
+     {% else %}href="{{ p_url }}{{ sep }}page={{ p_page - 1 }}"{% endif %}
+     title="Предыдущая страница">‹</a>
+  {% else %}<span class="pager-btn disabled">‹</span>{% endif %}
+  <span class="pager-info">{{ p_page + 1 }} / {{ pages }}</span>
+  {% if p_page + 1 < pages %}
+  <a class="pager-btn"
+     {% if p_target %}hx-get="{{ p_url }}{{ sep }}page={{ p_page + 1 }}" hx-target="{{ p_target }}" hx-swap="innerHTML"
+     {% else %}href="{{ p_url }}{{ sep }}page={{ p_page + 1 }}"{% endif %}
+     title="Следующая страница">›</a>
+  {% else %}<span class="pager-btn disabled">›</span>{% endif %}
+</div>
+{% endif %}

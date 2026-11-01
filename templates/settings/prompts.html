@@ -1,0 +1,32 @@
+<section class="sec">
+  <h2>Системные промпты</h2>
+  <p class="sec-sub">Промпты, которыми ИИ обрабатывает почту. Можно отредактировать под
+    свои формулировки и сохранить — изменения применяются сразу, без перезапуска. Под
+    каждым промптом есть пояснение, где он используется. Промпты раздельные по
+    пространствам.</p>
+</section>
+
+{% if not prompt_spaces %}
+  <div class="acc-empty">Сначала создай пространство в разделе «Пространства».</div>
+{% else %}
+  {% for grp in prompt_spaces %}
+  {# Сворачивание — тот же механизм, что у групп ящиков в сайдбаре (ui.js). Ключ с
+     префиксом «prompts:», иначе свёрнутая здесь группа свернулась бы и в сайдбаре. #}
+  {% set gid = "prompts:" ~ grp.space.id %}
+  <section class="sec">
+    <h3 class="prompt-acct" data-acct-toggle="{{ gid }}" title="Свернуть/развернуть">
+      <span class="acct-arrow">▾</span>
+      {{ icon("globe") }} {{ grp.space.name }}</h3>
+    <div data-acct-group="{{ gid }}">
+      {% for pr in grp.prompts %}
+        {% with space_id=grp.space.id, key=pr.key, title=pr.title,
+                description=pr.description, value=pr.value, is_custom=pr.is_custom,
+                suggestion=pr.suggestion, optional=pr.optional, builtin=pr.builtin,
+                status='' %}
+          {% include "settings/_prompt_card.html" %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+{% endif %}

@@ -1,0 +1,88 @@
+{# Календарь как в Календаре macOS (docs/feature-calendar.md §5.2): крупно месяц, по
+   центру «День | Неделя | Месяц», справа «‹ Сегодня ›», под шапкой — календари ящиков
+   цветными галочками. Раскладку дней и блоков считает сервер (calendar_grid), здесь она
+   только ставится в CSS-переменные. Клавиши — ui.js по data-cal-key. #}
+{% import "_calnav.html" as nav %}
+{# Событие создали или исправили — сетка перерисовывается на том же месте. #}
+<div class="cal cal-{{ cal_view }}"{% if week %} data-first-hour="{{ week.first_hour }}"
+     style="--cal-days:{{ week.columns }}"{% endif %}
+     hx-get="/calendar/grid?{{ link() }}" hx-trigger="calendarChanged from:body"
+     hx-target="#list" hx-swap="innerHTML">
+  <div class="cal-top">
+    <div class="cal-bar">
+      <details class="cal-pick">
+        <summary class="cal-title" title="Перейти к дате">{{ cal_title }}
+          {{ icon('chevron', 'ic-sm') }}</summary>
+        <div class="cal-pop" id="cal-mini">{% include "_calmini.html" %}</div>
+      </details>
+      <span class="seg cal-views">
+        {% for v in VIEWS %}
+        <button class="btn sm{% if v == cal_view %} on{% endif %}" type="button"
+                data-cal-key="{{ v }}" title="{{ VIEW_LABELS[v] }} ({{ loop.index }})"
+                {{ nav.go(link(view=v)) }}>{{ VIEW_LABELS[v] }}</button>
+        {% endfor %}
+      </span>
+      <span class="cal-nav">
+        <button class="btn sm icon" type="button" title="Новое событие (N)" data-cal-key="new"
+                hx-get="/calendar/event/new?date={{ anchor }}" hx-target="#pane"
+                hx-swap="innerHTML">{{ icon('plus', 'ic-sm') }}</button>
+        <button class="btn sm icon" type="button" data-cal-key="prev" title="Назад (←)"
+                {{ nav.go(link(date=prev)) }}>{{ icon('chevron-left', 'ic-sm') }}</button>
+        <button class="btn sm" type="button" data-cal-key="today" title="Сегодня (T)"
+                {{ nav.go(link(date=today)) }}>Сегодня</button>
+        <button class="btn sm icon" type="button" data-cal-key="next" title="Вперёд (→)"
+                {{ nav.go(link(date=next)) }}>{{ icon('chevron-right', 'ic-sm') }}</button>
+      </span>
+    </div>
+
+    {% if calendars %}
+    <div class="cal-sources">
+      {% for src in calendars %}
+      <button class="proj-chip{% if src.key not in hidden %} on{% endif %}" type="button"
+              style="--ev:var(--cal-{{ src.color }})"
+              title="{% if src.key in hidden %}Показать{% else %}Спрятать{% endif %} {% if src.calendar_name %}календарь «{{ src.calendar_name }}» ящика {{ src.account.name }}{% else %}встречи ящика {{ src.account.name }}, чей календарь неизвестен: удалены на сервере или старше 90 дней{% endif %}"
+              {{ nav.go(link(hide=toggle(src.key))) }}><span class="cal-dot"></span>{{ src.label }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+
+    {% if cal_view == 'month' %}
+    <div class="cal-mhead">{% for w in WEEKDAYS %}<span>{{ w }}</span>{% endfor %}</div>
+    {% else %}
+    <div class="cal-head">
+      <div class="cal-gutter"></div>
+      {% for d in week.days %}
+      <div class="cal-dayname{% if d.today %} today{% endif %}">
+        {{ WEEKDAYS[d.date.weekday()] }} <b>{{ d.date.day }}</b>
+      </div>
+      {% endfor %}
+    </div>
+    {% if week.has_all_day %}
+    <div class="cal-allday">
+      <div class="cal-gutter">весь день</div>
+      {% for d in week.days %}
+      <div class="cal-allday-cell">
+        {% for ev in d.all_day %}
+        {% set c = color_of(ev) %}
+        <button class="cal-chip{% if ev.cancelled_at %} cancelled{% endif %}" type="button"
+                style="--ev:var(--cal-{{ c }});--ev-bg:var(--cal-{{ c }}-bg)"
+                hx-get="/event/{{ ev.id }}" hx-target="#pane" hx-swap="innerHTML"
+                title="{{ ev.title or 'Без названия' }}">{{ ev.title or "Без названия" }}</button>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+
+  {# Пустая сетка без слова читается как «календарь сломался». Чаще всего дело в
+     пространстве: календари живут в ящиках, и у «Личной» их может не быть вовсе. #}
+  {% if empty %}
+  <p class="hint-inline">{% if cal_view == 'day' %}В этот день{% elif cal_view == 'month' %}В этом месяце{% else %}На этой неделе{% endif %}
+    в «{{ space_name }}» встреч нет{% if hidden %} — или их календари спрятаны{% endif %}.</p>
+  {% endif %}
+
+  {% if cal_view == 'month' %}{% include "_calmonth.html" %}{% else %}{% include "_calweek.html" %}{% endif %}
+</div>

@@ -1,0 +1,40 @@
+{# Нити обязательства (docs/feature-topics.md §8.3): прямая привязка сильнее той, что
+   унаследована от беседы или встречи. Унаследованные чипы горят без крестика — снимать
+   их надо у беседы; прямая — с крестиком; остальные ставят прямую привязку. #}
+<div id="card-threads">
+{% if item and projects %}
+<div class="attach proj-assign">
+  <div class="attach-cap">{{ icon('thread', 'ic-sm') }} Нить</div>
+  <div class="proj-chips">
+    {% for p in projects %}
+    {% if item.project_id == p.id %}
+    <form hx-post="/item/{{ item.id }}/thread" hx-target="#card-threads" hx-swap="outerHTML" style="display:inline">
+      <input type="hidden" name="project_id" value="">
+      <span class="proj-chip on" title="Привязано прямо">{{ p.name }}
+        <button type="submit" class="chip-x" title="Снять привязку">{{ icon('x', 'ic-sm') }}</button></span>
+    </form>
+    {% elif item.project_id is none and p.name in inherited %}
+    <span class="proj-chip on" title="Через беседу или встречу">{{ icon('check', 'ic-sm') }} {{ p.name }}</span>
+    {% else %}
+    <form hx-post="/item/{{ item.id }}/thread" hx-target="#card-threads" hx-swap="outerHTML" style="display:inline">
+      <input type="hidden" name="project_id" value="{{ p.id }}">
+      <button type="submit" class="proj-chip" title="Привязать прямо к этой нити">+ {{ p.name }}</button>
+    </form>
+    {% endif %}
+    {% endfor %}
+    <form hx-post="/item/{{ item.id }}/thread-new" hx-target="#card-threads" hx-swap="outerHTML" style="display:inline">
+      <button type="submit" class="proj-chip" title="Новая нить по заголовку обязательства">{{ icon('thread', 'ic-sm') }} Новая нить</button>
+    </form>
+  </div>
+</div>
+{% elif item %}
+<div class="attach proj-assign">
+  <div class="attach-cap">{{ icon('thread', 'ic-sm') }} Нить</div>
+  <div class="proj-chips">
+    <form hx-post="/item/{{ item.id }}/thread-new" hx-target="#card-threads" hx-swap="outerHTML" style="display:inline">
+      <button type="submit" class="proj-chip" title="Новая нить по заголовку обязательства">{{ icon('thread', 'ic-sm') }} Новая нить</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+</div>

@@ -1,0 +1,1192 @@
+:root{
+  --bg:#ffffff;
+  --sidebar:#f9f9f9;
+  --text:#0d0d0d;
+  --muted:#8e8e9a;
+  --subtle:#6b6b76;
+  --border:#e8e8ea;
+  --hover:#ececec;
+  --active:#e6e6e8;
+  --card:#ffffff;
+  --card-hover:#f7f7f8;
+  --accent:#10a37f;
+  --accent-weak:#e7f6f1;
+  --red:#ef4444;
+  --chip:#f0f0f2;
+  --shadow:0 1px 2px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.04);
+  --r:14px; --r-sm:10px;
+  --font:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#212121; --sidebar:#171717; --text:#ececec; --muted:#8e8e8e; --subtle:#b4b4b4;
+    --border:#2f2f2f; --hover:#2a2a2a; --active:#303030; --card:#2a2a2a; --card-hover:#303030;
+    --accent:#19c39a; --accent-weak:#10312a; --chip:#333; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--font);font-size:14px;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+a{color:inherit;text-decoration:none}
+
+.app{display:flex;height:100vh}
+
+/* ---- Sidebar ---- */
+.sidebar{width:268px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:12px}
+.side-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:8px 8px 12px}
+.logo{color:var(--accent);font-size:18px}
+.brand-logo{width:24px;height:24px;border-radius:6px;flex-shrink:0;object-fit:cover}
+.side-btn{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--border);
+  background:var(--card);border-radius:var(--r-sm);padding:11px 12px;font-size:14px;font-weight:500;
+  margin-bottom:14px;transition:background .12s}
+.side-btn:hover{background:var(--hover)}
+.side-btn span{color:var(--muted)}
+
+.nav{display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);
+  color:var(--subtle);transition:background .12s;font-size:14px}
+.nav-item:hover{background:var(--hover)}
+.nav-item.active{background:var(--active);color:var(--text);font-weight:600}
+.nav-ic{width:var(--ic-lg);display:inline-flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:var(--ic-md)}
+.nav-item.active .nav-ic{color:var(--text)}
+.nav-label{flex:1}
+.badge{background:var(--chip);color:var(--subtle);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600}
+.nav-item.active .badge{background:var(--accent);color:#fff}
+.nav-sep{height:1px;background:var(--border);margin:8px 6px}
+.nav-cap{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  padding:10px 12px 4px;font-weight:600}
+.side-foot{margin-top:auto;padding-top:8px}
+/* Queue status of the extraction agent (docs/ux-tasks.md §13): system state lives in the
+   sidebar footer, not in a strip over the board. */
+.agent-status{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-1) var(--sp-3);
+  min-height:var(--act-sm);font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.agent-dot{display:inline-flex;font-size:var(--ic-sm);color:var(--success);flex-shrink:0}
+.agent-dot.busy,.agent-dot.warn{color:var(--warning)}
+.agent-dot.err{color:var(--danger)}
+.agent-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.agent-status .act{width:var(--act-sm);height:var(--act-sm);font-size:var(--ic-sm);flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center}
+/* Space switcher under the brand: the window is one space (docs/spaces.md §4). */
+.space-switch{display:flex;align-items:center;gap:var(--sp-2);padding:0 var(--sp-2) var(--sp-2)}
+.space-switch-ic{display:inline-flex;color:var(--muted)}
+.space-switch select{flex:1;min-width:0;border:1px solid var(--border);background:var(--bg);color:var(--text);
+  border-radius:var(--r-xs);font:inherit;font-size:var(--fs-md);font-weight:var(--fw-medium);padding:var(--sp-1) var(--sp-2)}
+/* Settings → Пространства: one card per space with its mailboxes and bots inside. */
+.space-card{border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);margin-bottom:var(--sp-4);background:var(--card)}
+.space-head{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-3)}
+/* Список моделей — ростом с поле имени рядом, а не на треть ниже него. */
+.space-head select{height:var(--control-h);border:1px solid var(--border);border-radius:var(--r-xs);
+  background:var(--card);color:var(--text);font:inherit;font-size:var(--fs-sm);padding:0 var(--sp-2)}
+.space-ic{display:inline-flex;color:var(--accent)}
+.space-name{flex:1;min-width:160px;height:var(--control-h);border:1px solid transparent;
+  background:transparent;font:inherit;font-size:var(--fs-lg);font-weight:var(--fw-semibold);
+  color:var(--text);padding:0 var(--sp-2);border-radius:var(--r-xs)}
+.space-name:hover,.space-name:focus{border-color:var(--border);background:var(--bg);outline:none}
+.space-sub{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm);color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;margin:var(--sp-4) 0 var(--sp-2)}
+.bot-form{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;width:100%}
+.bot-form input[type=text],.bot-form input[type=password],.bot-form input:not([type]){flex:1;min-width:120px;
+  border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:var(--r-xs);font:inherit;
+  font-size:var(--fs-md);padding:var(--sp-1) var(--sp-2)}
+.space-new{display:flex;gap:var(--sp-2);align-items:center;margin-top:var(--sp-3)}
+.space-new input{flex:1;height:var(--control-h);border:1px solid var(--border);background:var(--bg);
+  color:var(--text);border-radius:var(--r-xs);font:inherit;padding:0 var(--sp-3)}
+.space-new .btn{height:var(--control-h);padding-top:0;padding-bottom:0}
+.pane-space{display:inline-flex}
+
+/* ---- Main ---- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.main-head{padding:14px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border)}
+.main-head h1{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.icon-btn{border:none;background:transparent;color:var(--subtle);font-size:18px;line-height:1;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  transition:background .12s}
+.icon-btn:hover{background:var(--hover);color:var(--text)}
+.content{flex:1;overflow-y:auto;padding:0 28px 40px}
+#board-head{padding-top:var(--sp-1)}
+/* Ширину списка задаёт разделитель, а не константа: раньше строка упиралась в 820px и
+   при широком окне заголовок обрывался, хотя справа было пусто. Длину строки регулирует
+   сам пользователь — перетаскиванием. */
+.content #list{container-type:inline-size}
+
+/* ---- Task rows (commitment boards; docs/ux-tasks.md §4.1) ----
+   One ActionItem = one dense line. Sibling of .mrow: same hairline separators, left
+   state bar and .sel/.muted vocabulary. Type = icon in a semantic colour; counterparty =
+   fixed column; title + muted reason; date/age or hover actions on the right.
+   Markup: macro task_row() in templates/_taskrow.html (flat children, in this order:
+   ic · who · title · reason · break · src · [srcname] · end).
+
+   Two layouts from one markup, chosen by the LIST's width, not the window's: with the
+   reading pane open the list is ~500px, where a fixed counterparty column would leave
+   the title a dozen letters. Wide: one line, counterparty first.
+   Narrow: title line on top, counterparty + reason underneath — still ~52px, still
+   no chrome. The breakpoint is a literal: container queries cannot read custom
+   properties. */
+.trows{list-style:none;margin:0;padding:0;container-type:inline-size}
+.tsec{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-xs);text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);font-weight:var(--fw-semibold);
+  padding:var(--sp-4) var(--sp-3) var(--sp-1)}
+.tsec-n{background:var(--chip);color:var(--subtle);border-radius:var(--r-pill);padding:0 var(--sp-2);
+  letter-spacing:0;text-transform:none}
+/* Group headers that are names (a person, a project, a mailbox) keep their case. */
+.tsec.named{text-transform:none;letter-spacing:0;font-size:var(--fs-sm);color:var(--subtle)}
+.trow{display:flex;align-items:center;gap:var(--sp-3);padding:0 var(--sp-3);min-height:var(--row-h);
+  border-bottom:1px solid var(--border);border-left:var(--bar-w) solid transparent;cursor:pointer;
+  transition:background var(--t-fast)}
+.trow:hover{background:var(--card-hover)}
+/* Open in the reading pane — same signal as .mrow.sel. */
+.trow.sel,.trow.sel:hover{background:var(--accent-weak);border-left-color:var(--accent)}
+.trow.overdue{border-left-color:var(--danger)}
+.trow.muted{opacity:.55}
+/* Keyboard cursor (j/k) and a checked row (bulk selection). */
+.trow.cur{outline:1px solid var(--accent);outline-offset:-1px}
+.trow.checked{background:var(--accent-weak)}
+/* Только что добавленная строка: короткая подсветка, чтобы взгляд её нашёл. */
+.trow.flash{animation:trow-flash 1.2s ease-out}
+@keyframes trow-flash{from{background:var(--accent-weak)}to{background:transparent}}
+/* A row without a lifecycle (decision, fact): shown, not opened. */
+.trow.static{cursor:default}
+.trow.static:hover{background:transparent}
+.trow-chk{display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer}
+.trow-check{width:var(--ic-sm);height:var(--ic-sm);margin:0;accent-color:var(--accent);cursor:pointer}
+.trow-ic{font-size:var(--ic-sm);display:inline-flex;flex-shrink:0;color:var(--muted)}
+.trow-ic.waiting{color:var(--warning)}
+.trow-ic.needreply{color:var(--danger)}
+.trow-ic.commitment{color:var(--success)}
+.trow-ic.delegated{color:var(--delegated)}
+.trow-ic.info{color:var(--info)}
+.trow-ic.task{color:var(--success)}
+.trow-who,.trow-title,.trow-reason{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.trow-who{flex:0 0 var(--col-who);font-weight:var(--fw-medium);color:var(--subtle);font-size:var(--fs-md)}
+/* An empty counterparty keeps its column on the wide layout, so titles stay aligned. */
+.trow-who.to{color:var(--delegated)}
+.trow-title{flex:0 1 auto}
+/* Needs attention (overdue / due today) — bold, like unread mail. */
+.trow.attn .trow-title{font-weight:var(--fw-semibold)}
+/* The reason gives way first: it shrinks to nothing before the title loses a letter. */
+.trow-reason{flex:0 999 auto;color:var(--muted);font-size:var(--fs-md)}
+/* Метки беседы на строке задачи: не сжимаются — чип из двух букв нечитаем. */
+.trow-lbls{display:inline-flex;align-items:center;gap:var(--sp-1);flex-shrink:0}
+.lbl-more{font-size:var(--fs-xs);color:var(--muted);background:var(--chip);
+  border-radius:var(--r-pill);padding:1px var(--sp-1)}
+.trow-break{display:none}
+.trow-src{color:var(--muted);font-size:var(--ic-sm);display:inline-flex;flex-shrink:0;margin-left:auto}
+.trow-srcname{color:var(--muted);font-size:var(--fs-sm);flex-shrink:0}
+.trow-end{width:var(--col-end);flex-shrink:0;display:flex;justify-content:flex-end;align-items:center;
+  font-size:var(--fs-sm);color:var(--muted);white-space:nowrap;position:relative}
+.trow-date.over{color:var(--danger);font-weight:var(--fw-semibold)}
+.trow-date.today{color:var(--warning);font-weight:var(--fw-semibold)}
+/* The hover actions lie OVER the end cell instead of replacing the date in flow: the
+   buttons are taller than the date line, and a row that grows on hover moves the rows
+   under it — a shift-click then lands on the wrong row (docs/ux-tasks.md §13.1). */
+.actions{display:none;gap:var(--sp-1);position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.trow:hover .actions{display:flex}
+.trow:hover .trow-date{visibility:hidden}
+.trow .act{width:var(--act-sm);height:var(--act-sm)}
+@container (max-width: 680px){
+  .trow{flex-wrap:wrap;padding-top:var(--sp-2);padding-bottom:var(--sp-2);row-gap:0}
+  .trow-title{flex:1 1 0}
+  /* Second line: counterparty + reason, indented past the type icon. */
+  .trow-break{display:block;flex-basis:100%;height:0}
+  .trow-who{order:5;flex:0 1 auto;max-width:50%;margin-left:calc(var(--ic-sm) + var(--sp-3))}
+  .trow-who:empty{display:none}
+  .trow-who:empty ~ .trow-reason{margin-left:calc(var(--ic-sm) + var(--sp-3))}
+  .trow-reason{order:6;flex:1 1 0}
+  .trow-lbls{order:7}
+  .trow-break{order:4}
+  .trow-src{order:2;margin-left:0}
+  .trow-srcname{display:none}
+  .trow-end{order:3}
+}
+.act{width:30px;height:30px;border:none;background:transparent;border-radius:8px;font-size:14px;
+  color:var(--muted);display:flex;align-items:center;justify-content:center;transition:background .12s}
+.act:hover{background:var(--hover);color:var(--text)}
+.act.ok:hover{background:var(--accent-weak);color:var(--accent)}
+/* Small marks next to a title: edited by hand, close candidate, VIP sender. */
+.tag{margin-left:6px;color:var(--accent);font-size:12px;display:inline-flex;vertical-align:middle}
+.tag.dot{color:var(--accent)}
+.tag.vip{margin-left:0;margin-right:4px;color:var(--warning)}
+.tag.rem{color:var(--warning)}
+/* Square type/status avatar (pane titles). Colours are the semantic pairs, so dark mode
+   follows the tokens. */
+.chip{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;background:var(--chip);color:var(--subtle)}
+.chip.sm{width:26px;height:26px;font-size:14px;border-radius:8px}
+.chip.waiting{background:var(--warning-bg);color:var(--warning)}
+.chip.needreply{background:var(--danger-bg);color:var(--danger)}
+.chip.commitment{background:var(--success-bg);color:var(--success)}
+.chip.delegated{background:var(--delegated-bg);color:var(--delegated)}
+.chip.info{background:var(--info-bg);color:var(--info)}
+.chip.task{background:var(--success-bg);color:var(--success)}
+
+/* ---- Empty states ---- */
+.empty{text-align:center;padding:72px 20px;color:var(--muted)}
+.empty-ic,.pane-empty-ic{font-size:30px;color:var(--accent);opacity:.6;margin-bottom:10px}
+.empty-title{font-size:16px;color:var(--text);font-weight:600}
+.empty-sub{margin-top:4px}
+
+/* ---- Reading pane ---- */
+.pane{width:var(--pane-w,440px);flex-shrink:0;background:var(--bg);overflow-y:auto}
+@media(max-width:980px){.pane,.splitter{display:none}}
+
+/* ---- Splitter (drag to resize list vs reading pane) ---- */
+.splitter{width:6px;flex-shrink:0;cursor:col-resize;background:var(--border);
+  border-left:1px solid var(--border);border-right:1px solid var(--border);transition:background .12s}
+.splitter:hover{background:var(--accent)}
+body.resizing{cursor:col-resize;user-select:none}
+
+/* ---- Collapsible sidebar ---- */
+.app.sidebar-collapsed .sidebar{display:none}
+
+/* ---- Mail-style list (macOS Mail) ---- */
+.mlist{list-style:none;margin:0;padding:0}
+.mrow{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;
+  border-left:3px solid transparent;transition:background .1s}
+.mrow:hover{background:var(--card-hover)}
+.mrow.sel{background:var(--accent-weak);border-left-color:var(--accent)}
+.mrow.muted{opacity:.6}
+.mrow-top{display:flex;align-items:baseline;gap:10px}
+.mrow-from{font-weight:600;font-size:14px;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow-time{color:var(--muted);font-size:12px;flex-shrink:0}
+.mrow-subj{font-size:13px;font-weight:500;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow-prev{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mrow.sel .mrow-time,.mrow.sel .mrow-prev{color:var(--subtle)}
+
+/* ---- Reading pane: single email ---- */
+.pane-inner.read{padding:24px 28px}
+.read-subject{font-size:19px;font-weight:700;line-height:1.3;margin-bottom:14px}
+.read-head{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.read-avatar{width:38px;height:38px;border-radius:999px;background:var(--accent-weak);color:var(--accent);
+  font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.read-meta{flex:1;min-width:0}
+.read-from{font-weight:600;font-size:14px}
+.read-to{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.read-date{color:var(--muted);font-size:12px;flex-shrink:0}
+.read-actions{display:flex;gap:8px;margin:16px 0}
+.read-body{white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--text);word-break:break-word}
+
+/* ---- Attachments ---- */
+.attach{margin:16px 0;padding-top:14px;border-top:1px solid var(--border)}
+.attach-cap{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.attach-loading{font-size:13px;color:var(--muted)}
+.attach-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;
+  color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px}
+.attach-list{display:flex;flex-wrap:wrap;gap:8px}
+.attach-item{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);
+  background:var(--card);border-radius:var(--r-sm);padding:8px 12px;font-size:13px;
+  max-width:100%;transition:background .12s,box-shadow .12s}
+.attach-item:hover{background:var(--card-hover);box-shadow:var(--shadow)}
+.attach-ic{font-size:16px;flex-shrink:0}
+.attach-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attach-size{color:var(--muted);flex-shrink:0}
+
+/* ---- Projects ---- */
+.proj-cap{display:flex;align-items:center;justify-content:space-between}
+.proj-add{color:var(--muted);font-size:14px;width:20px;height:20px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center}
+.proj-add:hover{background:var(--hover);color:var(--text)}
+.subtle-item{color:var(--muted)}
+.folder-row{display:flex;gap:8px}
+.folder-row input{flex:1}
+.proj-head{padding:14px 24px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.proj-prompt{font-size:13px;color:var(--subtle);line-height:1.5;white-space:pre-wrap}
+.proj-actions{display:flex;align-items:center;gap:12px;margin-top:8px}
+.proj-folder{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.proj-assign .proj-chips{display:flex;flex-wrap:wrap;gap:6px}
+.proj-chip{display:inline-flex;align-items:center;gap:var(--sp-1);white-space:nowrap;
+  border:1px solid var(--border);background:var(--card);border-radius:999px;
+  padding:4px 12px;font-size:12px;color:var(--subtle);transition:background .12s}
+.proj-chip:hover{background:var(--hover)}
+/* Inline remove action inside a chip («убрать из проекта»): sized to the chip, unlike
+   .act, which is a 30px card button. */
+.proj-chip .chip-x{border:none;background:transparent;color:inherit;cursor:pointer;
+  padding:0;margin-left:var(--sp-1);opacity:.6;line-height:1;font:inherit}
+.proj-chip .chip-x:hover{opacity:1}
+/* Proposal line inside .reason-box: text left, confirm action right. */
+.sugg-row{display:flex;align-items:center;justify-content:space-between;
+  gap:var(--sp-3);margin-top:var(--sp-2)}
+.sugg-row>form{flex-shrink:0}
+.proj-chip.on{background:var(--accent-weak);border-color:var(--accent);color:var(--accent);
+  font-weight:600}
+
+/* ---- Per-account sidebar groups ---- */
+.acct-cap{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:12px;
+  color:var(--subtle);margin-top:6px;padding-left:2px;padding-right:8px}
+.acct-dot{width:18px;height:18px;border-radius:6px;background:var(--accent-weak);color:var(--accent);
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pane-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--muted);text-align:center;padding:24px}
+.pane-inner{padding:22px}
+.pane-title{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px;line-height:1.3}
+.pane-sub{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px;margin:10px 0 14px}
+/* Links here are htmx actions without href (see _pane.html), so the cursor is on us. */
+.pane-sub a{cursor:pointer}
+.badge-type{background:var(--chip);border-radius:999px;padding:2px 10px;font-weight:600}
+.st{border-radius:999px;padding:2px 10px;background:var(--chip)}
+.st-overdue{background:#fee2e2;color:#dc2626}
+/* align-items:center — otherwise the row's default `stretch` lets the taller native
+   date input pull every button on its wrapped line to a different height. */
+.pane-actions{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-4)}
+/* Pane action bars (docs/ux-tasks.md §15): one family per role, one primary per bar —
+   the obligation's lifecycle above, the mail actions below. */
+.pane-bars{display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-4)}
+.pane-bars .pane-actions{margin-bottom:0}
+.pane-bars .btn{padding:var(--sp-2) var(--sp-3)}  /* four controls must fit a 440px pane */
+.btn.due-over{color:var(--danger)}
+.btn.due-today{color:var(--warning)}
+.btn.icon{padding:var(--sp-2) var(--sp-3)}
+/* Joined buttons: one control for a family of mutually exclusive actions (reply / all /
+   forward), instead of three look-alike pills. */
+.seg{display:inline-flex}
+.seg .btn{border-radius:0;margin-left:-1px}
+.seg .btn:first-child{border-radius:var(--r-pill) 0 0 var(--r-pill);margin-left:0}
+.seg .btn:last-child{border-radius:0 var(--r-pill) var(--r-pill) 0}
+.seg .btn:hover,.seg .btn:focus-visible{position:relative;z-index:1}
+.btn{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:8px 14px;
+  font-size:13px;font-weight:500;transition:background var(--t-fast),border-color var(--t-fast),transform var(--t-fast);
+  display:inline-flex;align-items:center;gap:var(--sp-1)}
+.btn:hover{background:var(--hover)}
+/* Press + keyboard-focus feedback for every button, so a click reads as a click. */
+.btn:active{background:var(--active);transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-strong);border-color:var(--accent-strong);filter:none}
+.btn.primary:active{background:var(--accent-strong);border-color:var(--accent-strong);transform:translateY(1px)}
+.btn:disabled,.btn[disabled]{opacity:.55;cursor:default;filter:none;transform:none;pointer-events:none}
+/* Same press feedback on the other button families. */
+.icon-btn:active{background:var(--active);color:var(--text)}
+.act:active{background:var(--active)}
+.icon-btn:focus-visible,.act:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Compose submit: swap "Отправить" -> "Отправляю…" while the request is in flight. */
+.lbl-busy{display:none}
+.compose-form.htmx-request .lbl-idle{display:none}
+.compose-form.htmx-request .lbl-busy{display:inline}
+
+/* Toasts (transient confirmations). */
+#toast-host{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:9999;
+  display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--accent-weak);color:var(--accent);border:1px solid var(--accent);
+  border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;box-shadow:var(--shadow);
+  opacity:1;transition:opacity .4s ease,transform .4s ease;
+  display:flex;align-items:center;gap:var(--sp-3);pointer-events:auto}
+/* «Отменить» inside an undo toast (the host is pointer-events:none; the toast is not). */
+.toast-undo{border:none;background:transparent;color:inherit;font:inherit;font-weight:var(--fw-bold);
+  cursor:pointer;text-decoration:underline;padding:0}
+.toast.hide{opacity:0;transform:translateY(-8px)}
+.reason-box{background:var(--accent-weak);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;
+  margin-bottom:16px;line-height:1.5}
+.reason-label{display:block;font-weight:600;color:var(--accent);margin-bottom:4px;font-size:12px}
+/* Совет ассистента (.reason-box.advice): вывод и улики. Чип .ev — ссылка на строку,
+   на которой стоит утверждение (письмо, карточка, встреча…); открывает её в панели. */
+.reason-box.advice .reason-label{display:flex;align-items:center;gap:var(--sp-2)}
+.reason-box.advice .reason-label .hint-inline{font-weight:var(--fw-normal)}
+.reason-box.advice .reason-label .act{margin-left:auto;opacity:.7}
+.reason-box.advice .reason-label .act:hover{opacity:1}
+.adv-lead{margin-bottom:var(--sp-1)}
+.adv-imp{margin-top:var(--sp-1)}
+.adv-points{margin-top:var(--sp-2)}
+.adv-points ul{margin:var(--sp-1) 0 0;padding-left:var(--sp-4)}
+.adv-risk{margin-top:var(--sp-2);color:var(--warning);display:flex;align-items:center;gap:var(--sp-1)}
+.ev{display:inline-flex;align-items:center;gap:3px;font-size:var(--fs-xs);
+  line-height:var(--lh-tight);color:var(--accent);
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r-pill);
+  padding:1px var(--sp-2);margin-left:var(--sp-1);text-decoration:none;cursor:pointer;
+  vertical-align:middle;max-width:22ch;overflow:hidden;white-space:nowrap}
+.ev .ic{flex-shrink:0;opacity:.7}
+a.ev:hover{border-color:var(--accent)}
+span.ev{cursor:default;color:var(--subtle)}
+/* Откуда взялась задача, когда писем под ней нет: строка-подпись + кнопки к источнику. */
+.src-block{margin-bottom:var(--sp-4)}
+.src-line{display:flex;align-items:center;gap:var(--sp-1);flex-wrap:wrap;
+  color:var(--subtle);font-size:var(--fs-md);margin-bottom:var(--sp-2)}
+.src-sum{margin:0 0 var(--sp-3);color:var(--text);font-size:var(--fs-md);line-height:var(--lh-normal)}
+/* Сводка встречи по разделам (meetings.summary_blocks). */
+.mt-sum h4{margin:var(--sp-3) 0 var(--sp-1);font-size:var(--fs-md);font-weight:var(--fw-semibold);color:var(--subtle)}
+.mt-sum p{margin:0 0 var(--sp-2);line-height:var(--lh-normal)}
+.mt-sum ul{margin:0 0 var(--sp-2);padding-left:var(--sp-5)}
+.mt-sum li{margin-bottom:var(--sp-1);line-height:var(--lh-normal)}
+.edit{margin-bottom:18px}
+.edit summary{cursor:pointer;color:var(--accent);font-size:13px;font-weight:500}
+.edit form{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.edit label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px}
+.edit input,.edit select,.edit textarea{padding:9px 10px;border:1px solid var(--border);border-radius:var(--r-sm);
+  font-size:14px;background:var(--card);color:var(--text)}
+.edit input:focus,.edit select:focus,.edit textarea:focus{outline:none;border-color:var(--accent)}
+.edit textarea{resize:vertical;font:inherit;line-height:var(--lh-normal)}
+.edit .btn{align-self:flex-start}
+
+/* История карточки (docs/ux-tasks.md §17): тот же «тихий» details, что «Исправить», но
+   читают её, а не заполняют. Своё имя класса нужно ещё и потому, что меню «⋯» открывает
+   первый `details.edit` в панели. */
+.hist{margin-bottom:18px}
+.hist summary{cursor:pointer;color:var(--accent);font-size:var(--fs-md);font-weight:500;
+  display:flex;align-items:center;gap:var(--sp-1)}
+.hist-list{list-style:none;margin:var(--sp-3) 0 0;padding:0;display:flex;
+  flex-direction:column;gap:var(--sp-2)}
+.hist-row{display:flex;gap:var(--sp-2);font-size:var(--fs-md);line-height:var(--lh-normal)}
+.hist-when{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hist-what{color:var(--text)}
+/* Снятие с доски — не исполнение: приглушаем, чтобы не читалось как результат. */
+.hist-row.drop .hist-what{color:var(--muted)}
+.hist-row.user .hist-what{font-weight:500}
+
+.back-link{border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:500;
+  padding:0 0 10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.back-link:hover{text-decoration:underline}
+.thread{border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.msg{border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;background:var(--card);
+  cursor:pointer;transition:background .12s,box-shadow .12s}
+.msg:hover{box-shadow:var(--shadow);border-color:var(--accent)}
+.msg.me{background:var(--accent-weak);border-color:transparent}
+.msg-head{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+.msg-date{color:var(--muted);font-weight:400}
+.msg-subj{font-size:12px;color:var(--muted);margin:4px 0}
+/* Recipient line with inline expander: "Кому: a, b +N" -> click +N to reveal the rest,
+   no JS (native <details>). Wrapping container overrides the single-line ellipsis. */
+.recip-wrap{color:var(--muted);font-size:var(--fs-sm);margin-top:var(--sp-1);white-space:normal}
+.recip,.recip>summary,.recip-rest{display:inline}
+.recip>summary{list-style:none;cursor:pointer}
+.recip>summary::-webkit-details-marker{display:none}
+.recip-more{color:var(--accent);font-weight:var(--fw-medium)}
+.recip:not([open]) .recip-rest{display:none}
+.recip[open] .recip-more{display:none}
+/* Код, который сверяют глазами с другим экраном, поэтому крупно и моноширинно,
+   чтобы не спутать 0 и O. */
+.mono-block{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--fs-2xl);
+  letter-spacing:.28em;text-align:center;padding:var(--sp-4);margin:var(--sp-3) 0;
+  background:var(--chip);border-radius:var(--r-sm);color:var(--text)}
+/* Long monospace payloads (an MCP token, a ready-to-paste command) — same block, read
+   rather than dictated aloud, so smaller and wrapped. */
+.mono-block.sm{font-size:var(--fs-sm);letter-spacing:0;word-break:break-all;
+  text-align:left;line-height:var(--lh-normal)}
+/* Многострочный кусок конфигурации: переносы значимы, а рвать слова посреди адреса не
+   нужно — иначе скопированное глазами не сверить с тем, что на экране. */
+.mono-block.block{white-space:pre-wrap;word-break:normal;overflow-wrap:anywhere}
+
+/* Кусок расшифровки, на который сослалась задача со встречи. */
+.tc-hit{background:var(--warning-bg);color:var(--text);border-radius:var(--r-xs);
+  box-shadow:0 0 0 4px var(--warning-bg)}
+
+/* Тело письма — основное содержимое карточки, а не подпись к ней: полный --text,
+   иначе читается как выцветший серый. */
+.msg-body{white-space:pre-wrap;font-size:var(--fs-md);margin-top:6px;line-height:1.5;
+  color:var(--text)}
+
+/* ---- Settings ---- */
+.settings{max-width:680px;margin:0 auto;padding:8px}
+.settings h3{margin:22px 0 8px;font-size:15px}
+.settings code{background:var(--chip);padding:2px 7px;border-radius:6px}
+.acc{border-collapse:collapse;width:100%;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.acc th,.acc td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.acc th{background:var(--sidebar);font-weight:600}
+.acc tr:last-child td{border-bottom:none}
+.hint{color:var(--muted);font-size:13px;margin-top:14px}
+
+/* ---- Settings / wizard ---- */
+.settings{max-width:760px;margin:0 auto}
+.settings-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--border);
+  margin-bottom:24px}
+.settings-tabs .tab{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font-size:14px;
+  color:var(--subtle);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px;
+  border-radius:8px 8px 0 0;transition:background .12s,color .12s}
+.settings-tabs .tab:hover{background:var(--hover)}
+.settings-tabs .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.settings-tabs .tab-ic{font-size:14px}
+.settings-tabs .tab.soon{color:var(--muted);cursor:default;opacity:.7}
+.settings-tabs .tab.soon:hover{background:transparent}
+.soon-badge{font-size:10px;text-transform:uppercase;letter-spacing:.03em;background:var(--chip);
+  color:var(--muted);border-radius:999px;padding:1px 7px;font-weight:600}
+.settings-body{animation:none}
+.sec{margin-bottom:34px}
+.sec h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.sec-sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+
+.prov-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prov-card{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:var(--card);
+  border-radius:var(--r);padding:14px 16px;transition:background .12s,box-shadow .12s}
+.prov-card:hover{background:var(--card-hover);box-shadow:var(--shadow)}
+.prov-card-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:var(--chip);color:var(--muted)}
+.prov-gmail,.prov-yandex{background:var(--chip);color:var(--muted)}
+.prov-card-label{flex:1;font-weight:500}
+.prov-card-go{color:var(--muted)}
+@media(max-width:680px){.prov-cards{grid-template-columns:1fr}}
+
+.acc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.acc-row{display:flex;align-items:center;gap:12px;border:1px solid var(--border);background:var(--card);
+  border-radius:var(--r);padding:12px 14px}
+.acc-row.paused{opacity:.6}
+.acc-ic{width:34px;height:34px;border-radius:9px;background:var(--chip);display:flex;align-items:center;
+  justify-content:center;font-size:18px;color:var(--muted);flex-shrink:0}
+.ic{vertical-align:-.125em;flex-shrink:0}
+/* Icon size utilities — set font-size so icon()'s 1em SVG scales (see tokens --ic-*). */
+.ic-sm{font-size:var(--ic-sm)}
+.ic-md{font-size:var(--ic-md)}
+.ic-lg{font-size:var(--ic-lg)}
+.acc-info{flex:1;min-width:0}
+.acc-name{font-weight:600;font-size:14px}
+.acc-meta{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-pill{font-size:12px;border-radius:999px;padding:2px 10px;background:var(--chip);color:var(--subtle);white-space:nowrap}
+.st-pill.ok{background:var(--accent-weak);color:var(--accent)}
+.st-pill.err{background:#fee2e2;color:#dc2626}
+.st-pill.paused{background:var(--chip);color:var(--muted)}
+/* Важность карточки в совете: степень считает правило, цвет — семантика статуса. */
+.st-pill.high{background:var(--danger-bg);color:var(--danger)}
+.st-pill.medium{background:var(--warning-bg);color:var(--warning)}
+.st-pill.low{background:var(--info-bg);color:var(--info)}
+/* Состояние Нити — свёртка обязательств (attention.py): семантика, не назначение. */
+.st-pill.mine{background:var(--danger-bg);color:var(--danger)}
+.st-pill.remind{background:var(--warning-bg);color:var(--warning)}
+.st-pill.wait{background:transparent;color:var(--warning);border:1px solid var(--warning-border)}
+.st-pill.idle{background:var(--chip);color:var(--muted)}
+.st-pill.flow{background:var(--success-bg);color:var(--success)}
+.proj-state{display:flex;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);font-size:var(--fs-md);color:var(--subtle)}
+.nav-item .st-pill{margin-left:auto;font-size:var(--fs-xs);padding:0 var(--sp-2)}
+.acc-name .st-pill{margin-right:var(--sp-1);vertical-align:middle}
+.banner .acts{margin-left:auto;display:flex;gap:var(--sp-2);flex-shrink:0;align-items:center}
+.banner .acts form{display:inline-flex;gap:var(--sp-1);align-items:center}
+.banner.thread-ask{margin:0 var(--sp-5) var(--sp-2)}
+.acc-actions{display:flex;gap:6px;flex-shrink:0}
+.btn.sm{padding:5px 10px;font-size:12px}
+/* Semantic action buttons: "empty" at rest (label-only), soft fill on hover/press.
+   Positive (success, e.g. «Готово») and negative (danger) mirror each other. */
+.btn.danger{color:var(--danger);border-color:transparent;background:transparent}
+.btn.danger:hover,.btn.danger:active{background:var(--danger-bg)}
+.btn.success{color:var(--success);border-color:transparent;background:transparent}
+.btn.success:hover,.btn.success:active{background:var(--success-bg)}
+.period-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.period-row input,.period-row select{padding:9px 10px;border:1px solid var(--border);
+  border-radius:var(--r-sm);font-size:14px;background:var(--card);color:var(--text)}
+.acc-empty{color:var(--muted);padding:8px 0}
+
+.chips-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ident-chip{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border-radius:999px;
+  padding:4px 6px 4px 12px;font-size:13px}
+.chip-x{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;
+  width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+.chip-x:hover{background:var(--border);color:var(--text)}
+.ident-add{display:flex;gap:8px;margin-top:12px;max-width:380px}
+.ident-add input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
+  font-size:14px;background:var(--card);color:var(--text)}
+.ident-add input:focus{outline:none;border-color:var(--accent)}
+.params{list-style:none;padding:0;margin:0;color:var(--subtle);font-size:13px;display:flex;flex-direction:column;gap:4px}
+
+.wizard{max-width:620px;margin:0 auto}
+.back{color:var(--muted);font-size:13px;display:inline-block;margin-bottom:10px}
+.wizard h2{font-size:19px;font-weight:600;margin:0 0 16px}
+.steps{margin:0 0 14px;padding-left:20px;color:var(--subtle);font-size:14px;line-height:1.7}
+.deeplink{display:inline-block;margin-bottom:20px}
+.wz-form{display:flex;flex-direction:column;gap:14px}
+.wz-form > label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:5px;font-weight:500}
+.wz-form input{padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:14px;
+  background:var(--card);color:var(--text)}
+.wz-form input:focus{outline:none;border-color:var(--accent)}
+.adv summary{cursor:pointer;color:var(--accent);font-size:13px;font-weight:500;margin-bottom:6px}
+.adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.adv-grid label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:5px}
+.wz-actions{display:flex;gap:10px;margin-top:6px}
+
+.key-status{font-size:13px;color:var(--muted);margin:-2px 0 4px;overflow-wrap:anywhere}
+.test-result{margin-top:18px}
+.tr{border-radius:var(--r);padding:14px 16px;font-size:13px;line-height:1.5}
+.tr.ok{background:var(--accent-weak);color:var(--text)}
+.tr.err{background:#fee2e2;color:#7f1d1d}
+@media (prefers-color-scheme: dark){.tr.err{background:#3a1c1c;color:#f0b0b0}}
+.tr-head{font-weight:600;margin-bottom:6px}
+.tr-sugg{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tr code{background:rgba(0,0,0,.06);padding:1px 6px;border-radius:5px}
+
+/* ---- Compose / mail toolbar ---- */
+.mail-toolbar{margin:0 0 12px}
+.compose-form{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.compose-form > label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:5px;font-weight:500}
+.compose-form input,.compose-form select,.compose-form textarea{padding:9px 12px;border:1px solid var(--border);
+  border-radius:var(--r-sm);font-size:14px;background:var(--card);color:var(--text);font-family:inherit}
+.compose-form input:focus,.compose-form textarea:focus,.compose-form select:focus{outline:none;border-color:var(--accent)}
+.compose-form textarea{resize:vertical}
+/* Conversation groups: one row per thread, opened in place by the arrow — the messages
+   are the same .mrow, indented, so the list keeps one visual language. */
+.mrow-exp{border:1px solid var(--border);background:var(--card);color:var(--muted);
+  cursor:pointer;padding:0 var(--sp-1);border-radius:var(--r-pill);margin-left:var(--sp-2);
+  display:inline-flex;align-items:center;gap:var(--sp-1);font-size:var(--fs-xs);
+  flex-shrink:0;
+  vertical-align:middle;transition:background var(--t-fast),color var(--t-fast)}
+.mrow-exp:hover{background:var(--hover);color:var(--text)}
+.mrow-exp .ic{font-size:var(--ic-sm);transition:transform var(--t-fast)}
+.mrow-exp[aria-expanded="true"] .ic{transform:rotate(180deg)}
+.mrow-exp-n{font-weight:var(--fw-medium)}
+.mrow.expanded{background:var(--hover)}
+/* Вложенные письма беседы сдвинуты вправо. Непрочитанные — тоже: у .mrow.unread свой
+   padding-left, и он перебивал отступ, потому что объявлен ниже. */
+.mrow.sub{padding-left:var(--sp-6);background:var(--bg)}
+.mrow.sub.unread{padding-left:calc(var(--sp-6) + var(--sp-3))}
+.mrow.sub.unread .mrow-unread-dot{left:var(--sp-5)}
+.mrow.sub .mrow-subj{font-weight:var(--fw-normal)}
+.mrow-kids{display:contents}
+.mrow-kids[hidden]{display:none}
+.mrow-kids-wait{padding:var(--sp-2) var(--sp-6);color:var(--muted);font-size:var(--fs-sm)}
+
+/* Recipient autocomplete: the list hangs under the field, so the field needs to be the
+   positioning parent. Visuals are the context menu's — same list, same rows. */
+.ac{position:relative;display:block}
+/* Поле внутри обёртки должно занимать её целиком: без этого «Кому» и «Копия» стали
+   узкими, когда вокруг них появилась обёртка для подсказки. */
+.ac > input{width:100%;box-sizing:border-box}
+.ac-drop{position:absolute;left:0;right:0;top:100%;z-index:var(--z-menu)}
+.ac-drop .ac-list{position:static;margin-top:var(--sp-1);max-height:var(--drop-max-h);overflow-y:auto}
+.ac-item{display:flex;gap:var(--sp-2);align-items:baseline;overflow:hidden}
+.ac-item.ac-cur{background:var(--accent-weak);color:var(--accent)}
+.ac-name{font-weight:var(--fw-medium);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-addr{color:var(--muted);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.ac-item.ac-cur .ac-addr{color:inherit;opacity:.75}
+
+/* Checkbox line in a form: the label sits NEXT to the box, not stacked above it
+   like the column-layout text fields. Used by the composer and by settings forms. */
+.check-row,.compose-form > label.check-row,.wz-form > label.check-row{display:inline-flex;
+  flex-direction:row;
+  align-items:center;gap:var(--sp-2);color:var(--text);font-weight:var(--fw-normal)}
+.check-row input{width:auto;accent-color:var(--accent)}
+/* Adaptive composer: the form fills the reading pane and the body textarea takes
+   all leftover height, so the edit area is as large as possible while «От/Кому/…»,
+   the attach row and the action buttons stay visible. Shrinks (pane scrolls) on
+   short windows; the textarea never collapses below its min-height. */
+.pane-inner.compose{display:flex;flex-direction:column;min-height:100%}
+.pane-inner.compose .compose-form{flex:1;min-height:0}
+.pane-inner.compose .field-body{flex:1;min-height:0}
+.pane-inner.compose .field-body textarea{flex:1;min-height:140px;resize:none}
+.quote summary{cursor:pointer;color:var(--muted);font-size:12px}
+.quote pre{white-space:pre-wrap;font-size:12px;color:var(--muted);background:var(--chip);
+  padding:10px;border-radius:var(--r-sm);max-height:200px;overflow:auto}
+
+/* ---- Labels ---- */
+.lbl-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid;border-radius:999px;
+  padding:2px 9px;font-size:12px;font-weight:500;text-decoration:none}
+.lbl-chip.mini{padding:1px 7px;font-size:11px}
+.lbl-dot{width:7px;height:7px;border-radius:999px;display:inline-block}
+.row-labels{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.lab-block{margin-bottom:22px}
+.lab-block h3{font-size:14px;margin:0 0 8px}
+.inline-form{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-top:10px}
+.inline-form input[type=text],.inline-form input:not([type]),.inline-form input[name=name],
+.inline-form input[name=pattern]{height:var(--control-h);padding:0 10px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--card);color:var(--text);font-size:14px}
+.inline-form input[name=pattern]{min-width:200px}
+.inline-form input[type=color]{width:38px;height:var(--control-h);border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--card);padding:2px}
+.inline-form select{height:var(--control-h);padding:0 10px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--card);color:var(--text);font-size:14px}
+/* Кнопка в строке формы — ростом с поле: иначе она ниже на восемь пикселей и сидит в
+   строке криво (замер на «Метках»: поле 34, кнопка 26). */
+.inline-form .btn{height:var(--control-h);padding-top:0;padding-bottom:0}
+/* ---- Подписанное значение в настройках: подпись сверху, значение под ней ---- */
+.field-row{margin:var(--sp-3) 0}
+.field-label{display:block;color:var(--muted);font-size:var(--fs-sm);margin-bottom:var(--sp-1)}
+
+/* ---- Строка «скопировать»: значение + кнопка с двумя квадратами (макрос copy_value) ---- */
+.copy-line{display:flex;align-items:flex-start;gap:var(--sp-2)}
+.copy-line .mono-block{flex:1;min-width:0;margin:0}
+.copy-line .act{flex-shrink:0;margin-top:var(--sp-1)}
+.copy .copy-ok{display:none}
+.copy.copied .copy-ic{display:none}
+.copy.copied .copy-ok{display:inline-flex;color:var(--success)}
+
+.rule-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.rule-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--subtle)}
+.rule-arrow{color:var(--muted)}
+.banner{background:var(--accent-weak);color:var(--accent);border-radius:var(--r-sm);padding:10px 14px;
+  font-size:13px;margin-bottom:14px;font-weight:500}
+.banner.ok{background:var(--accent-weak);color:var(--accent)}
+.banner.warn{background:#fef3c7;color:#92400e;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.banner.warn a{color:#92400e;font-weight:600;text-decoration:underline;white-space:nowrap}
+@media (prefers-color-scheme: dark){.banner.warn{background:#3a2e12;color:#f0c674}.banner.warn a{color:#f0c674}}
+
+/* ---- Board toolbar (docs/ux-tasks.md §13): ONE sticky strip of fixed height, the first
+   child of #list. Normal mode: grouping, mailbox (only when the space has several),
+   «+ Задача». Selection mode (.selecting, set by ui.js while a row is checked): the same
+   strip shows the count and the bulk actions — the rows underneath never move. The left
+   border and padding mirror .trow, so the strip's text lines up with the rows. ---- */
+.tools{position:sticky;top:0;z-index:1;height:var(--tools-h);box-sizing:border-box;display:flex;
+  align-items:center;padding:0 var(--sp-3);border-left:var(--bar-w) solid transparent;
+  border-bottom:1px solid var(--border);background:var(--bg);font-size:var(--fs-md);
+  color:var(--subtle);white-space:nowrap}
+.tools.selecting{background:var(--accent-weak);color:var(--accent);border-bottom-color:transparent;
+  border-radius:var(--r-xs)}
+.tools-main,.tools-sel{display:flex;align-items:center;gap:var(--sp-2);flex:1;min-width:0}
+.tools-main[hidden],.tools-sel[hidden]{display:none}  /* the class sets display:flex */
+.tools-dd{display:inline-flex;align-items:center;gap:var(--sp-1);min-width:0;position:relative}
+.tools-lbl{color:var(--muted)}
+/* appearance:none — WebKit (the app's engine) otherwise paints its native popup button
+   over the strip; the chevron is ours (.tools-chev), laid over the select's right pad. */
+.tools select{appearance:none;-webkit-appearance:none;border:none;background:transparent;color:inherit;
+  font:inherit;font-size:var(--fs-md);font-weight:var(--fw-medium);cursor:pointer;
+  padding:var(--sp-1) calc(var(--ic-sm) + var(--sp-1)) var(--sp-1) var(--sp-1);
+  border-radius:var(--r-xs);max-width:200px;text-overflow:ellipsis}
+.tools-chev{position:absolute;right:var(--sp-1);top:50%;transform:translateY(-50%);
+  display:inline-flex;font-size:var(--ic-sm);color:var(--muted);pointer-events:none}
+.tools.selecting .tools-chev{color:inherit}
+.tools select:hover{background:var(--hover)}
+.tools.selecting select:hover{background:var(--card)}
+.tools select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tools-add{margin-left:auto;display:inline-flex;align-items:center;gap:var(--sp-1);border:none;
+  background:transparent;color:var(--accent);font:inherit;font-size:var(--fs-md);
+  font-weight:var(--fw-medium);padding:var(--sp-1) var(--sp-2);border-radius:var(--r-xs);flex-shrink:0}
+.tools-add:hover{background:var(--accent-weak)}
+.tools-count{display:inline-flex;align-items:center;gap:var(--sp-1);font-weight:var(--fw-semibold);
+  padding-right:var(--sp-2);border-right:1px solid var(--border);flex-shrink:0}
+.tools-count .act{width:var(--act-sm);height:var(--act-sm);color:inherit;font-size:var(--ic-sm);
+  display:inline-flex;align-items:center;justify-content:center}
+.tools-act{display:inline-flex;align-items:center;gap:var(--sp-1);border:none;background:transparent;
+  color:inherit;font:inherit;font-size:var(--fs-md);padding:var(--sp-1) var(--sp-2);
+  border-radius:var(--r-xs);cursor:pointer;flex-shrink:0}
+.tools-act:hover{background:var(--card)}
+.tools-act.primary{font-weight:var(--fw-semibold)}
+.tools .tools-type{max-width:6.5em}  /* always reads «Тип…»; its options are far wider */
+/* Narrow list: the actions keep their icons, the title carries the word; the select
+   labels go, the values stay. The rows fold at 680px, the strip has room until ~560. */
+@container (max-width: 560px){
+  .tools-act span,.tools-lbl{display:none}
+}
+
+/* Quick-add as a ghost row under the toolbar (docs/ux-tasks.md §13): no frame, the height
+   of the strip; the accent bar on the left says «typing here» like .trow.sel does. */
+/* Липкая, как и полоса инструментов над ней: подсветка только что добавленной строки
+   уводит список вниз, и поле ввода уезжало с экрана — следующую строку набирали вслепую. */
+.qadd{display:flex;align-items:center;gap:var(--sp-3);height:var(--tools-h);box-sizing:border-box;
+  padding:0 var(--sp-3);border-bottom:1px solid var(--border);border-left:var(--bar-w) solid transparent;
+  position:sticky;top:var(--tools-h);z-index:1;background:var(--bg);
+  color:var(--muted);transition:border-color var(--t-fast)}
+.qadd[hidden]{display:none}  /* the class sets display:flex */
+.qadd:focus-within{border-left-color:var(--accent)}
+.qadd-ic{display:inline-flex;font-size:var(--ic-sm);flex-shrink:0}
+.qadd-input{flex:1;min-width:0;border:none;background:transparent;font:inherit;color:var(--text);outline:none}
+.qadd-input::placeholder{color:var(--muted)}
+.qadd-key{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--muted);
+  background:var(--chip);border-radius:var(--r-xs);padding:2px var(--sp-1);flex-shrink:0}
+/* Срок до создания задачи: кнопка молчит, пока срока нет, и называет его, когда есть. */
+.qadd-due{display:inline-flex;align-items:center;gap:var(--sp-1);flex-shrink:0;border:none;
+  background:transparent;color:var(--muted);font:inherit;font-size:var(--fs-sm);
+  border-radius:var(--r-xs);padding:var(--sp-1) var(--sp-2);transition:background var(--t-fast)}
+.qadd-due:hover{background:var(--hover);color:var(--text)}
+.qadd-due.set{color:var(--accent)}
+
+/* Source-mailbox filter (per-type views) + source tag on cards. */
+.src-filter{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border)}
+.src-chip{font-size:12px;padding:4px 12px;border:1px solid var(--border);border-radius:999px;
+  background:var(--card);color:var(--muted);cursor:pointer;white-space:nowrap}
+.src-chip:hover{background:var(--hover)}
+.src-chip.on{background:var(--accent-weak);border-color:var(--accent);color:var(--accent);font-weight:600}
+.src-tag{display:inline-flex;align-items:center;gap:4px;background:var(--chip);color:var(--muted);
+  font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
+/* Same tag as an <a>: a source you can open (a meeting behind an item). */
+a.src-tag{cursor:pointer}
+a.src-tag:hover{background:var(--accent-weak);color:var(--accent)}
+
+/* Per-account mail group collapse. */
+.acct-cap,.prompt-acct[data-acct-toggle]{cursor:pointer;user-select:none}
+.acct-arrow{font-size:18px;line-height:1;color:var(--muted);width:20px;text-align:center;
+  font-weight:600;flex-shrink:0;transition:transform .12s,color .12s}
+.acct-cap:hover .acct-arrow,.prompt-acct:hover .acct-arrow{color:var(--accent)}
+.acct-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The mailbox's items (inbox/sent/projects) nest under the arrow: indented
+   right with a guide line so it's clear they belong to this account. */
+.acct-group{margin-left:11px;padding-left:7px;border-left:1px solid var(--border)}
+/* Project sub-header (with + to add) inside a mailbox group */
+.proj-subcap{display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+  padding:6px 14px 2px 12px;opacity:.85}
+.proj-subcap .proj-add{font-size:15px;line-height:1;color:var(--muted);text-decoration:none;
+  opacity:.6;transition:opacity .12s,color .12s}
+.proj-subcap:hover .proj-add{opacity:1;color:var(--accent)}
+.proj-acc-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 16px;
+  font-size:13px;color:var(--muted)}
+.hint-inline{font-size:12px;color:var(--muted);opacity:.8}
+.export-ok{font-size:12px;color:var(--accent);font-weight:600}
+.export-err{font-size:12px;color:var(--danger);font-weight:600}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 12px 24px;
+  color:var(--muted);font-size:13px}
+.pager-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--card);
+  display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;color:var(--text);
+  cursor:pointer;text-decoration:none;transition:background .12s}
+.pager-btn:hover{background:var(--hover)}
+.pager-btn.disabled{opacity:.35;pointer-events:none}
+.pager-info{font-variant-numeric:tabular-nums;font-weight:600}
+
+/* Compose attachments */
+.att-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.attach-btn{display:inline-flex;align-items:center;gap:6px}
+.att-hint{color:var(--muted);font-size:12px}
+.att-chips{display:flex;flex-wrap:wrap;gap:8px}
+.att-chips:empty{display:none}
+.att-chip{display:inline-flex;align-items:center;gap:8px;background:var(--chip);border:1px solid var(--border);
+  border-radius:999px;padding:4px 6px 4px 12px;font-size:12px;color:var(--text);max-width:100%}
+.att-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+/* Вложение оригинала, которого нет на этой стороне: с ним письмо не перешлётся. */
+.att-chip.missing{background:var(--warning-bg);border-color:var(--warning);color:var(--warning)}
+.att-size{color:var(--muted);font-size:11px}
+.att-x{border:none;background:transparent;color:var(--muted);cursor:pointer;width:18px;height:18px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
+.att-x:hover{background:var(--hover);color:var(--text)}
+.compose-form.att-drop-hot{outline:2px dashed var(--accent);outline-offset:6px;
+  background:var(--accent-weak);border-radius:var(--r)}
+
+/* Editable system prompts (settings) */
+.prompt-acct{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.prompt-card{border:1px solid var(--border);background:var(--card);border-radius:var(--r);
+  padding:16px;margin-bottom:14px}
+.prompt-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.prompt-title{font-weight:600;font-size:14px}
+.prompt-desc{color:var(--muted);font-size:12.5px;line-height:1.5;margin:0 0 12px}
+.prompt-text{width:100%;box-sizing:border-box;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12.5px;line-height:1.5;padding:10px 12px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--bg);color:var(--text);resize:vertical}
+.prompt-actions{display:flex;align-items:center;gap:10px;margin-top:10px}
+.prompt-status{margin-left:2px}
+
+/* Rich signature editor (settings) */
+.sig-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid var(--border);
+  border-bottom:none;border-radius:var(--r-sm) var(--r-sm) 0 0;padding:6px 8px;background:var(--chip)}
+.sig-btn{min-width:28px;height:28px;padding:0 8px;border:1px solid var(--border);background:var(--card);
+  border-radius:6px;cursor:pointer;font-size:13px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
+.sig-btn:hover{background:var(--hover)}
+.sig-color-wrap{display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:600;cursor:pointer}
+.sig-color{width:22px;height:22px;border:none;background:none;padding:0;cursor:pointer}
+.sig-toolbar select{height:28px;border:1px solid var(--border);border-radius:6px;background:var(--card);
+  color:var(--text);font-size:12px;padding:0 4px}
+.sig-editor{min-height:90px;border:1px solid var(--border);border-radius:0 0 var(--r-sm) var(--r-sm);
+  padding:10px 12px;background:var(--card);color:var(--text);font-size:14px;line-height:1.5;outline:none;overflow:auto}
+.sig-editor:empty:before{content:attr(data-ph);color:var(--muted)}
+.sig-editor:focus{border-color:var(--accent)}
+
+/* Thread navigation: right-clickable messages (card) + reading-pane thread strip */
+.msg[data-email-id]{cursor:context-menu}
+.thread-strip{margin-top:22px;border-top:1px solid var(--border);padding-top:14px}
+.thread-strip-cap{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  font-weight:600;margin-bottom:8px}
+.tmsg{border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:6px;
+  cursor:pointer;transition:background .12s}
+.tmsg:hover{background:var(--hover)}
+.tmsg.cur{border-color:var(--accent);background:var(--accent-weak);cursor:default}
+.tmsg-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tmsg-who{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmsg-date{color:var(--muted);font-size:12px;flex-shrink:0}
+.tmsg-subj{font-size:12px;color:var(--subtle);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmsg-prev{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Header search box. */
+.search-box{margin-left:auto;width:280px;max-width:40vw;padding:7px 12px;font-size:13px;
+  border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text)}
+.search-box:focus{outline:none;border-color:var(--accent)}
+.search-head{padding:10px 14px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--border)}
+
+/* Attachment open/download actions. */
+.attach-acts{display:inline-flex;gap:8px;margin-left:6px}
+.attach-act{color:var(--accent);font-size:12px;font-weight:600}
+.attach-act:hover{text-decoration:underline}
+/* Крутится, только пока запрос в пути: htmx вешает .htmx-request на саму кнопку. */
+@keyframes ic-spin{to{transform:rotate(1turn)}}
+.ic-spin{display:inline-block}
+.htmx-request .ic-spin{animation:ic-spin var(--t-spin) linear infinite}
+@media (prefers-reduced-motion:reduce){.htmx-request .ic-spin{animation:none}}
+
+/* Original-HTML rendering (sandboxed iframe). */
+.read-htmlbar{display:flex;gap:8px;margin:10px 0 6px}
+.mail-html{width:100%;min-height:60vh;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:#fff}
+
+/* Письмо внутри карточки обязательства: та же песочница, что в почте, но карточка
+   узкая и её не надо распирать на пол-экрана. */
+.msg-html{min-height:var(--msg-html-h);margin-top:var(--sp-2)}
+.msg-plain{margin-top:var(--sp-2)}
+
+/* Paperclip in the mail list. */
+/* ---- «Люди»: строка человека и чипы его личностей (docs/feature-people.md) ---- */
+.prow{display:flex;align-items:flex-start;gap:var(--sp-3)}
+.prow-body{flex:1;min-width:0}
+.prow-chk{padding-top:3px}
+.prow-ids{display:flex;flex-wrap:wrap;gap:var(--sp-1);margin-top:var(--sp-1)}
+.idchip{display:inline-flex;align-items:center;gap:var(--sp-1);max-width:100%;
+  padding:1px var(--sp-2);border:1px solid var(--border);border-radius:999px;
+  background:var(--chip);color:var(--muted);font-size:var(--fs-sm);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idchip.name{color:var(--subtle)}
+.idchip.src{border-style:dashed}
+.idchip.open{color:var(--accent);border-color:var(--accent)}
+.idchip.warn{color:var(--warning);border-color:var(--warning)}
+.idchip .chip-x{margin-left:var(--sp-1)}
+.tools-search{flex:1;min-width:0;max-width:340px;padding:var(--sp-1) var(--sp-2);
+  border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);
+  color:inherit;font-size:var(--fs-md)}
+.tools-search:focus{outline:none;border-color:var(--accent)}
+
+.mrow-clip{font-size:12px;flex-shrink:0;margin-right:2px}
+
+/* Read/unread mail rows (macOS Mail style). */
+.mrow{position:relative}
+.mrow-from{font-weight:500}
+.mrow-unread-dot{display:none}
+.mrow.unread{padding-left:20px}
+.mrow.unread .mrow-unread-dot{display:block;position:absolute;left:7px;top:15px;
+  width:7px;height:7px;border-radius:999px;background:var(--accent)}
+.mrow.unread .mrow-from,.mrow.unread .mrow-subj{font-weight:700}
+
+/* Context menu (right-click). */
+.ctx-menu{position:absolute;z-index:10000;min-width:210px;background:var(--card);
+  border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);
+  padding:5px;font-size:13px}
+.ctx-item{padding:8px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.ctx-item:hover{background:var(--accent-weak);color:var(--accent)}
+.ctx-sep{height:1px;background:var(--border);margin:5px 6px}
+/* «Выбрать дату…»: тот же поповер, но с полем даты — родной календарь открывает сам
+   браузер по клику на поле, своего календаря мы не рисуем. */
+.ctx-date{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2);min-width:0}
+.ctx-date-input{border:1px solid var(--border);background:var(--bg);color:var(--text);
+  border-radius:var(--r-xs);padding:var(--sp-1) var(--sp-2);font:inherit;font-size:var(--fs-md)}
+.ctx-date .btn{padding:var(--sp-1) var(--sp-3)}
+
+/* Drag&drop target highlight on sidebar items. */
+.nav-item.drop-hot{background:var(--accent-weak);outline:2px dashed var(--accent);
+  outline-offset:-2px}
+.trow[draggable="true"],.mrow[draggable="true"]{cursor:grab}
+
+/* ---- Search: result rows, chips, and the ⌘K palette ---------------------------- */
+/* One row shape for every kind of hit (mail, commitment, meeting moment, person …):
+   kind chip, title with the matched words marked, who and when, a snippet. */
+.srows{list-style:none;margin:0;padding:0}
+.srow{display:flex;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);cursor:pointer;
+  border-bottom:1px solid var(--border);border-left:var(--bar-w) solid transparent;
+  transition:background var(--t-fast)}
+.srow:hover{background:var(--card-hover)}
+.srow.sel,.srow.cur{background:var(--accent-weak);border-left-color:var(--accent)}
+.srow.static{cursor:default}
+.srow-main{flex:1;min-width:0}
+.srow-top{display:flex;align-items:baseline;gap:var(--sp-3)}
+.srow-title{flex:1;min-width:0;font-size:var(--fs-base);font-weight:var(--fw-medium);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow-date{flex-shrink:0;color:var(--muted);font-size:var(--fs-sm)}
+.srow-who{color:var(--subtle);font-size:var(--fs-sm);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow-snip{color:var(--muted);font-size:var(--fs-sm);line-height:var(--lh-normal);
+  margin-top:var(--sp-1);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden}
+mark{background:var(--warning-bg);color:inherit;border-radius:var(--r-xs);padding:0 2px}
+.search-chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);padding:var(--sp-3) var(--sp-3) 0}
+
+.palette-back{position:fixed;inset:0;background:var(--scrim);z-index:var(--z-menu);
+  display:flex;justify-content:center;padding-top:12vh}
+/* `display:flex` above outranks the browser's rule for [hidden] — say it here, or the
+   overlay is on screen from the first paint and the keyboard layer never sees it as
+   closed. */
+.palette-back[hidden]{display:none}
+.palette{width:min(var(--palette-w),92vw);max-height:70vh;display:flex;flex-direction:column;
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-pop);overflow:hidden}
+.palette-input{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);
+  border-bottom:1px solid var(--border);color:var(--muted);font-size:var(--ic-sm)}
+.palette-input input{flex:1;border:none;background:transparent;color:var(--text);
+  font-size:var(--fs-lg);font-family:var(--font);outline:none}
+.palette-results{overflow-y:auto}
+.palette-hint{padding:var(--sp-3) var(--sp-4);color:var(--muted);font-size:var(--fs-sm);
+  line-height:var(--lh-loose)}
+kbd{font-family:var(--font-mono);font-size:var(--fs-xs);border:1px solid var(--border);
+  border-radius:var(--r-xs);padding:0 var(--sp-1);margin-right:var(--sp-1);
+  color:var(--subtle);background:var(--chip)}
+
+/* htmx request indicator: hidden until htmx marks the triggering element busy.
+   Used for actions long enough to look frozen (VACUUM, reindex). */
+.htmx-indicator{opacity:0;transition:opacity var(--t-fast);margin-left:var(--sp-2)}
+.htmx-request .htmx-indicator,.htmx-request.htmx-indicator{opacity:1}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px;border:3px solid var(--bg)}
+
+/* Настройки → Доски (docs/ux-tasks.md §17.5). Карточка доски: строка-шапка с именем и
+   видимостью, под ней — типы и порядок, справа — удаление или копирование. */
+.board-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--sp-3)}
+.board-row{border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-3);
+  background:var(--card);display:flex;gap:var(--sp-3);align-items:flex-start}
+.board-row.off{opacity:.6}
+.board-form{flex:1;display:flex;flex-direction:column;gap:var(--sp-2)}
+.board-head{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+.board-ic{color:var(--muted);display:inline-flex}
+.board-name{flex:1;min-width:140px;padding:var(--sp-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--bg);color:var(--text);font-size:var(--fs-md)}
+.board-name:focus{outline:none;border-color:var(--accent)}
+.board-sel{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:var(--fs-sm);
+  color:var(--muted)}
+.board-sel select{padding:var(--sp-1) var(--sp-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--card);color:var(--text);font-size:var(--fs-sm)}
+.board-chk{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:var(--fs-sm);
+  color:var(--muted);white-space:nowrap}
+.board-body{display:flex;flex-direction:column;gap:var(--sp-2)}
+.board-types{display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-3)}
+.board-opts{display:flex;gap:var(--sp-3);flex-wrap:wrap}
+.board-note{font-size:var(--fs-sm);color:var(--muted);display:flex;align-items:center;
+  gap:var(--sp-1)}
+.board-acts{display:flex;flex-direction:column;gap:var(--sp-2)}
+
+/* ---- Календарь как в Календаре macOS (docs/feature-calendar.md §5.2) ----
+   Шапка липнет к верху прокрутки .content: сетка на все сутки выше экрана, и без шапки
+   непонятно, какой день листаешь. Положение блоков считает сервер (calendar_grid) и
+   отдаёт в --top/--h/--left/--w, цвет календаря — в --ev/--ev-bg. */
+.cal-top{position:sticky;top:0;z-index:2;background:var(--bg)}
+.cal-bar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) 0 var(--sp-2)}
+.cal-pick{position:relative;flex:1;min-width:0}
+.cal-title{display:inline-flex;align-items:center;gap:var(--sp-1);list-style:none;cursor:pointer;
+  font-size:var(--fs-2xl);font-weight:var(--fw-bold);letter-spacing:-.01em;white-space:nowrap}
+.cal-title::-webkit-details-marker{display:none}
+.cal-title .ic{color:var(--muted)}
+.cal-pop{position:absolute;top:100%;left:0;z-index:var(--z-menu);margin-top:var(--sp-1);
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-pop);padding:var(--sp-3)}
+.cal-views .btn,.cal-nav .btn{min-width:var(--control-h);justify-content:center}
+/* Переключатель видов — по центру, как в Календаре: слева заголовок, справа стрелки,
+   оба занимают поровну. */
+.cal-nav{flex:1;display:inline-flex;justify-content:flex-end;gap:var(--sp-1)}
+/* Нажатый сегмент — как нажатая кнопка в панели Календаря. */
+.seg .btn.on{background:var(--accent-weak);color:var(--accent);border-color:var(--accent);
+  position:relative;z-index:1}
+.cal-sources{display:flex;flex-wrap:wrap;gap:var(--sp-2);padding-bottom:var(--sp-2)}
+/* Включённый календарь обведён своим цветом, а не акцентом: чип — это его галочка. */
+.cal-sources .proj-chip.on{border-color:var(--ev);background:var(--card);color:var(--text)}
+.cal-sources .proj-chip:not(.on){color:var(--muted)}
+.cal-sources .proj-chip:not(.on) .cal-dot{background:transparent;border:1px solid var(--ev)}
+.cal-ask{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-3)}
+.cal-ask .inline-form{margin-top:0}
+.cal-dot{display:inline-block;width:var(--sp-2);height:var(--sp-2);border-radius:var(--r-pill);
+  background:var(--ev,var(--accent));flex-shrink:0}
+
+/* Календарик перехода на дату */
+.cal-mini{width:calc(7 * var(--cal-mini-cell))}
+.cal-mini-head{display:flex;align-items:center;justify-content:space-between;
+  font-weight:var(--fw-semibold);font-size:var(--fs-md);margin-bottom:var(--sp-1)}
+.cal-mini-grid{display:grid;grid-template-columns:repeat(7,var(--cal-mini-cell))}
+.cal-mini-wd{font-size:var(--fs-xs);color:var(--muted);text-align:center;padding:var(--sp-1) 0}
+.cal-mini-day{height:var(--cal-mini-cell);border:none;background:transparent;border-radius:var(--r-pill);
+  font:inherit;font-size:var(--fs-sm);color:var(--text);cursor:pointer}
+.cal-mini-day:hover{background:var(--hover)}
+.cal-mini-day.out{color:var(--muted)}
+.cal-mini-day.shown{background:var(--accent-weak)}
+.cal-mini-day.today{background:var(--accent);color:var(--bg);font-weight:var(--fw-semibold)}
+
+/* День и неделя */
+.cal-head,.cal-allday,.cal-grid{display:grid;
+  grid-template-columns:var(--cal-gutter) var(--cal-days,repeat(7,minmax(0,1fr)))}
+.cal-head{border-bottom:1px solid var(--border)}
+.cal-dayname{display:flex;align-items:center;justify-content:center;gap:var(--sp-1);
+  padding:var(--sp-2) var(--sp-1);font-size:var(--fs-sm);color:var(--muted)}
+.cal-dayname b{display:inline-flex;align-items:center;justify-content:center;
+  min-width:var(--cal-today-d);height:var(--cal-today-d);border-radius:var(--r-pill);
+  font-size:var(--fs-lg);font-weight:var(--fw-semibold);color:var(--text)}
+/* Сегодняшнее число в залитом кружке, как в Календаре. */
+.cal-dayname.today{color:var(--accent)}
+.cal-dayname.today b{background:var(--accent);color:var(--bg)}
+.cal-gutter{font-size:var(--fs-xs);color:var(--muted);text-align:right;padding-right:var(--sp-2);
+  align-self:center}
+.cal-allday{border-bottom:1px solid var(--border)}
+.cal-allday-cell{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-1);min-width:0}
+.cal-chip{border:none;border-radius:var(--r-xs);padding:var(--sp-1) var(--sp-2);text-align:left;
+  font:inherit;font-size:var(--fs-sm);font-weight:var(--fw-medium);cursor:pointer;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;background:var(--ev-bg);color:var(--text)}
+.cal-chip.cancelled{text-decoration:line-through;color:var(--muted)}
+.cal-hours{position:relative}
+.cal-hour{position:relative;height:var(--cal-hour-h)}
+/* Подпись часа стоит на его линии, а не под ней. */
+.cal-hour span{position:absolute;top:0;right:var(--sp-2);transform:translateY(-50%);
+  font-size:var(--fs-xs);color:var(--muted)}
+.cal-now-label{position:absolute;top:var(--top);right:var(--sp-1);transform:translateY(-50%);
+  z-index:1;padding:0 var(--sp-1);border-radius:var(--r-xs);background:var(--bg);
+  font-size:var(--fs-xs);font-weight:var(--fw-semibold);color:var(--danger)}
+/* Часовые линии и бледные получасовые — двумя слоями одного рисунка на час. */
+.cal-day{position:relative;height:calc(24 * var(--cal-hour-h));border-left:1px solid var(--border);
+  background-image:linear-gradient(to bottom,var(--border) 0 1px,transparent 1px),
+    linear-gradient(to bottom,transparent calc(50% - .5px),color-mix(in srgb,var(--border) 45%,transparent) calc(50% - .5px) calc(50% + .5px),transparent calc(50% + .5px));
+  background-size:100% var(--cal-hour-h)}
+.cal-day.weekend{background-color:var(--sidebar)}
+.cal-ev{position:absolute;top:var(--top);height:var(--h);box-sizing:border-box;
+  left:calc(var(--left) + var(--cal-ev-gap));width:calc(var(--w) - 2 * var(--cal-ev-gap));
+  display:block;overflow:hidden;text-align:left;padding:0;border:none;
+  border-left:var(--bar-w) solid var(--ev,var(--accent));border-radius:var(--r-xs);
+  background:var(--ev-bg,var(--accent-weak));color:var(--text);font:inherit;
+  font-size:var(--fs-sm);line-height:var(--lh-tight);cursor:pointer;container-type:inline-size}
+.cal-ev:hover{outline:1px solid var(--ev,var(--accent))}
+/* Содержимое — во внутренней обёртке: WebKit ставит не влезшее в кнопку по центру, и тема
+   уходила за верхний край блока. */
+.cal-ev-body{display:flex;flex-direction:column;align-items:flex-start;height:100%;
+  box-sizing:border-box;overflow:hidden;
+  padding:var(--cal-ev-gap) var(--sp-1) var(--cal-ev-gap) var(--sp-2)}
+.cal-ev-time{flex-shrink:0;font-size:var(--fs-xs);color:var(--ev,var(--accent-strong))}
+/* Строк темы столько, сколько влезает (--lines от calendar_grid); длинное слово в узкой
+   колонке переносится посреди, а не прячется за многоточием после первой буквы. */
+.cal-ev-title{font-weight:var(--fw-medium);overflow:hidden;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines,2)}
+.cal-ev-loc{font-size:var(--fs-xs);color:var(--subtle);overflow:hidden;white-space:nowrap;
+  text-overflow:ellipsis;max-width:100%}
+/* Встреча короче трёх четвертей часа: время и тема в одну строку. */
+.cal-ev.short .cal-ev-body{flex-direction:row;align-items:center;gap:var(--sp-1);
+  padding-top:0;padding-bottom:0}
+.cal-ev.short .cal-ev-title{display:block;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+/* Узкий блок (встречи внахлёст) — одна тема: время и так видно по сетке. */
+@container (max-width: 96px){
+  .cal-ev-time{display:none}
+  .cal-ev-title{-webkit-line-clamp:var(--lines-alone,2)}
+}
+.cal-ev.past{opacity:.6}
+.cal-ev.cancelled{background:var(--chip);border-left-color:var(--border)}
+.cal-ev.cancelled .cal-ev-title{text-decoration:line-through;color:var(--muted)}
+.cal-ev.sel{outline:var(--cal-now-w) solid var(--ev,var(--accent));z-index:1}
+.cal-now{position:absolute;left:0;right:0;top:var(--top);z-index:1;pointer-events:none;
+  border-top:var(--cal-now-w) solid var(--danger)}
+.cal-now::before{content:"";position:absolute;left:calc(-1 * var(--sp-1));
+  top:calc(-1 * var(--sp-1) - var(--cal-now-w) / 2);width:var(--sp-2);height:var(--sp-2);
+  border-radius:var(--r-pill);background:var(--danger)}
+
+/* Месяц */
+.cal-mhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  border-bottom:1px solid var(--border)}
+.cal-mhead span{padding:var(--sp-2);font-size:var(--fs-sm);color:var(--muted);text-align:right}
+.cal-month{border-left:1px solid var(--border)}
+.cal-mweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-mday{min-height:var(--cal-month-h);min-width:0;padding:var(--sp-1);display:flex;
+  flex-direction:column;gap:var(--cal-ev-gap);border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border)}
+.cal-mday.weekend{background:var(--sidebar)}
+.cal-mnum{align-self:flex-end;display:inline-flex;align-items:center;justify-content:center;
+  min-width:var(--cal-today-d);height:var(--cal-today-d);border:none;background:transparent;
+  border-radius:var(--r-pill);font:inherit;font-size:var(--fs-md);color:var(--text);cursor:pointer}
+.cal-mnum:hover{background:var(--hover)}
+.cal-mday.out .cal-mnum{color:var(--muted)}
+.cal-mday.today .cal-mnum{background:var(--accent);color:var(--bg);font-weight:var(--fw-semibold)}
+.cal-mline{display:flex;align-items:center;gap:var(--sp-1);min-width:0;border:none;
+  background:transparent;border-radius:var(--r-xs);padding:0 var(--sp-1);font:inherit;
+  font-size:var(--fs-sm);color:var(--text);cursor:pointer;text-align:left}
+.cal-mline:hover{background:var(--hover)}
+.cal-mline.cancelled .cal-mtitle{text-decoration:line-through;color:var(--muted)}
+.cal-mtime{color:var(--muted);flex-shrink:0}
+.cal-mtitle{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.cal-more{align-self:flex-start;border:none;background:transparent;padding:0 var(--sp-1);
+  font:inherit;font-size:var(--fs-xs);color:var(--muted);cursor:pointer}
+.cal-more:hover{color:var(--text)}
+
+/* Пока событие не открыто, панель чтения на экране календаря не занимает место: сетке
+   нужна ширина. Замер в окне 1100 точек по умолчанию: с пустой панелью справа на день
+   оставалось 46 пикселей, и ни одна встреча не читалась. Открыли событие — панель
+   вернулась; закрыли — сетка снова во всю ширину. */
+.app:has(#list .cal):has(#pane > .pane-empty) .pane,
+.app:has(#list .cal):has(#pane > .pane-empty) .splitter{display:none}
+/* Панель события */
+.ev-line{display:flex;align-items:center;gap:var(--sp-2);color:var(--subtle);font-size:var(--fs-md)}
+.ev-link{color:var(--accent);font-weight:var(--fw-medium)}
+.ev-link:hover{text-decoration:underline}
+.ev-cancelled{text-decoration:line-through;color:var(--muted)}
+.ev-close{margin-left:auto;flex-shrink:0}

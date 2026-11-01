@@ -1,0 +1,90 @@
+{% import "_macros.html" as macros %}
+<div class="pane-inner read">
+  {% if back %}
+  <button class="back-link" type="button" onclick="window.paneNav('{{ back }}')">← К обязательству</button>
+  {% endif %}
+  <div class="read-subject">{{ email.subject or "(без темы)" }}</div>
+  <div class="read-head">
+    <div class="read-avatar">{{ (email.from_name or email.from_addr or "?")[0] | upper }}</div>
+    <div class="read-meta">
+      <div class="read-from">{{ email.from_name or email.from_addr }}</div>
+      {% if email.to_addrs %}
+      <div class="recip-wrap">{{ macros.recipients('Кому', email.to_addrs) }}</div>
+      {% endif %}
+      {% if email.cc_addrs %}
+      <div class="recip-wrap">{{ macros.recipients('Копия', email.cc_addrs) }}</div>
+      {% endif %}
+    </div>
+    <div class="read-date">{{ email.sent_at | local }}</div>
+  </div>
+
+  {# Одно семейство — один контрол (.seg): ответить, всем, переслать. Тред стоит
+     отдельно: это не ответ на письмо, а другой взгляд на него. #}
+  <div class="read-actions">
+    <div class="seg">
+      <button class="btn icon" hx-get="/reply/{{ email.id }}"
+              hx-target="#pane" hx-swap="innerHTML"
+              title="Ответить" aria-label="Ответить">{{ icon('reply', 'ic-md') }}</button>
+      <button class="btn icon" hx-get="/reply/{{ email.id }}?all=1"
+              hx-target="#pane" hx-swap="innerHTML"
+              title="Ответить всем" aria-label="Ответить всем">{{ icon('reply-all', 'ic-md') }}</button>
+      <button class="btn icon" hx-get="/forward/{{ email.id }}"
+              hx-target="#pane" hx-swap="innerHTML"
+              title="Переслать" aria-label="Переслать">{{ icon('forward', 'ic-md') }}</button>
+    </div>
+    {% if email.thread_id %}
+    <button class="btn icon" hx-get="/thread/{{ email.thread_id }}?back={{ email.id }}"
+            hx-target="#pane" hx-swap="innerHTML"
+            title="Показать тред" aria-label="Показать тред">{{ icon('thread', 'ic-md') }}</button>
+    {% endif %}
+  </div>
+
+  {% if email.has_attachments %}
+  <div hx-get="/email/{{ email.id }}/attachments" hx-trigger="load" hx-swap="innerHTML">
+    <div class="attach"><div class="attach-loading">📎 Загрузка вложений…</div></div>
+  </div>
+  {% endif %}
+  {% if email.thread_id %}
+  <div hx-get="/email/{{ email.id }}/projects" hx-trigger="load" hx-swap="outerHTML"></div>
+  {% endif %}
+
+  {% if html_body %}
+  <div class="read-htmlbar">
+    {# Кнопка — только для картинок из интернета: вложенные в письмо видны и так. #}
+    {% if remote_images %}
+    <button class="btn sm" type="button"
+            onclick="var f=document.getElementById('mailframe-{{ email.id }}');f.src='/email/{{ email.id }}/html?images=1'">
+      🖼 Показать картинки
+    </button>
+    {% endif %}
+    <button class="btn sm" type="button"
+            onclick="var f=document.getElementById('mailframe-{{ email.id }}'),t=document.getElementById('mailtext-{{ email.id }}');var h=f.style.display!=='none';f.style.display=h?'none':'';t.style.display=h?'block':'none';this.textContent=h?'Исходный вид':'Только текст'">
+      Только текст
+    </button>
+  </div>
+  <iframe id="mailframe-{{ email.id }}" class="mail-html" sandbox referrerpolicy="no-referrer"
+          src="/email/{{ email.id }}/html"></iframe>
+  <div class="read-body" id="mailtext-{{ email.id }}" style="display:none">{{ email.body_text or empty_body }}</div>
+  {% else %}
+  <div class="read-body">{{ email.body_text or empty_body }}</div>
+  {% endif %}
+
+  {% if messages and messages | length > 1 %}
+  <div class="thread-strip">
+    <div class="thread-strip-cap">Письма беседы · {{ messages | length }}</div>
+    {% for m in messages | reverse %}
+    <div class="tmsg {% if m.id == email.id %}cur{% endif %}" data-email-id="{{ m.id }}"
+         {% if back %}data-back="{{ back }}"{% endif %}
+         {% if m.id != email.id %}hx-get="/email/{{ m.id }}{% if back %}?back={{ back | urlencode }}{% endif %}" hx-target="#pane" hx-swap="innerHTML"{% endif %}
+         title="{% if m.id != email.id %}Клик — открыть · {% endif %}правый клик — открыть/ответить/переслать">
+      <div class="tmsg-top">
+        <span class="tmsg-who">{{ "Я" if m.is_me else m.who }}</span>
+        <span class="tmsg-date">{{ m.sent_at | local("%d.%m %H:%M") }}</span>
+      </div>
+      {% if m.subject %}<div class="tmsg-subj">{{ m.subject }}</div>{% endif %}
+      {% if m.body %}<div class="tmsg-prev">{{ m.body[:120] }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

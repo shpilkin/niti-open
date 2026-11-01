@@ -1,0 +1,126 @@
+{% set counts = counts | default({}) %}
+{% set accounts = accounts | default([]) %}
+{% set projects = projects | default([]) %}
+{% set active = active | default(view) %}
+
+<div class="side-brand"><img class="brand-logo" src="/static/logo.png" alt=""> Niti</div>
+{# Space switcher (docs/spaces.md §4): the whole window is one space. A plain form —
+   no JS state; the server remembers the choice in a cookie and reloads the screen. #}
+{% set spaces = spaces | default([]) %}
+{% if space and spaces | length > 1 %}
+<form class="space-switch" method="post" action="/space/{{ space.id }}" id="space-switch">
+  <input type="hidden" name="next" value="/view/today">
+  <span class="space-switch-ic">{{ icon('globe', 'ic-sm') }}</span>
+  <select name="space_id"
+          onchange="this.form.action='/space/'+this.value; this.form.next.value=location.pathname; this.form.submit()"
+          title="Пространство — экран остаётся тем же, если он есть в каждом пространстве">
+    {% for sp in spaces %}
+    <option value="{{ sp.id }}" {% if sp.id == space.id %}selected{% endif %}>{{ sp.name }}</option>
+    {% endfor %}
+  </select>
+</form>
+{% endif %}
+
+<nav class="nav">
+  {# Доски пространства (docs/ux-tasks.md §17.5): порядок, имена и видимость — из настроек.
+     «Отложенные» и «Архив» рисуются ниже своим блоком, поэтому здесь их пропускаем. #}
+  <div class="nav-cap">ИИ-рекомендации</div>
+  {% for b in boards | default([]) if b.kind not in ("snoozed", "done") %}
+  <a class="nav-item {% if active == b.key %}active{% endif %}" href="/view/{{ b.key }}"
+     data-board="{{ b.key }}"
+     {% set drop = board_drop(b) %}{% if drop %}data-drop="{{ drop }}"{% endif %}>
+    <span class="nav-ic">{{ icon(b.icon) }}</span>
+    <span class="nav-label">{{ b.name }}</span>
+    {% set c = counts.get(b.key, 0) %}
+    {% if c %}<span class="badge">{{ c }}</span>{% endif %}
+  </a>
+  {% endfor %}
+  {% for b in boards | default([]) if b.kind in ("snoozed", "done") %}
+  <a class="nav-item {% if active == b.key %}active{% endif %}" href="/view/{{ b.key }}"
+     data-board="{{ b.key }}" data-drop="{{ board_drop(b) }}">
+    <span class="nav-ic">{{ icon(b.icon) }}</span>
+    <span class="nav-label">{{ b.name }}</span>
+    {# У архива счётчика нет: число закрытого растёт бесконечно и ни о чём не говорит. #}
+    {% set sc = counts.get(b.key, 0) if b.kind != 'done' else 0 %}
+    {% if sc %}<span class="badge">{{ sc }}</span>{% endif %}
+  </a>
+  {% endfor %}
+  <a class="nav-item {% if active == 'calendar' %}active{% endif %}" href="/calendar">
+    <span class="nav-ic">{{ icon('calendar') }}</span> <span class="nav-label">Календарь</span>
+  </a>
+  <a class="nav-item {% if active == 'meetings' %}active{% endif %}" href="/meetings">
+    <span class="nav-ic">{{ icon('mic') }}</span> <span class="nav-label">Встречи</span>
+  </a>
+  <a class="nav-item {% if active == 'people' %}active{% endif %}" href="/people">
+    <span class="nav-ic">{{ icon('user') }}</span> <span class="nav-label">Контакты</span>
+  </a>
+  {# «Итоги недели» (/review) и «Брифинг» (/briefing) убраны из меню — экраны живы и
+     открываются по адресу, просто пока не нужны. #}
+
+  <div class="nav-cap proj-cap">
+    Почта
+    <a class="proj-add" href="/settings/section/spaces" title="Добавить почтовый ящик">＋</a>
+  </div>
+  {% if accounts %}
+    {% for acc in accounts %}
+    <div class="nav-cap acct-cap" data-acct-toggle="{{ acc.id }}" title="Свернуть/развернуть">
+      <span class="acct-arrow">▾</span>
+      <span class="acct-dot">{{ acc.name[0] | upper }}</span>
+      <span class="acct-name">{{ acc.name }}</span>
+    </div>
+    <div class="acct-group" data-acct-group="{{ acc.id }}">
+      <a class="nav-item {% if active == 'acct:' ~ acc.id ~ ':inbox' %}active{% endif %}"
+         href="/mail/account/{{ acc.id }}/inbox">
+        <span class="nav-ic">{{ icon('inbox') }}</span> <span class="nav-label">Входящие</span>
+        {% set uc = (unread_by_account | default({})).get(acc.id, 0) %}
+        {% if uc %}<span class="badge">{{ uc }}</span>{% endif %}
+      </a>
+      {# «Черновики» появляются только непустыми — пустая папка ничего не сообщает. #}
+      {% set dr = (drafts_by_account | default({})).get(acc.id, 0) %}
+      {% if dr %}
+      <a class="nav-item {% if active == 'acct:' ~ acc.id ~ ':drafts' %}active{% endif %}"
+         href="/mail/account/{{ acc.id }}/drafts">
+        <span class="nav-ic">{{ icon('pen') }}</span> <span class="nav-label">Черновики</span>
+        <span class="badge">{{ dr }}</span>
+      </a>
+      {% endif %}
+      <a class="nav-item {% if active == 'acct:' ~ acc.id ~ ':sent' %}active{% endif %}"
+         href="/mail/account/{{ acc.id }}/sent">
+        <span class="nav-ic">{{ icon('sent') }}</span> <span class="nav-label">Отправленные</span>
+      </a>
+    </div>
+    {% endfor %}
+  {% else %}
+    <a class="nav-item {% if active == 'inbox' %}active{% endif %}" href="/mail/inbox">
+      <span class="nav-ic">{{ icon('inbox') }}</span> <span class="nav-label">Входящие</span>
+      {% set uc = counts.get('inbox_unread', 0) %}
+      {% if uc %}<span class="badge">{{ uc }}</span>{% endif %}
+    </a>
+    <a class="nav-item {% if active == 'sent' %}active{% endif %}" href="/mail/sent">
+      <span class="nav-ic">{{ icon('sent') }}</span> <span class="nav-label">Отправленные</span>
+    </a>
+  {% endif %}
+
+  {# Threads (topics) belong to the space, not to a mailbox: one list after the mailboxes.
+     A pill only where the thread needs me or went idle (attention.fold) — the rest stay quiet. #}
+  <div class="nav-cap proj-cap">
+    Нити
+    <a class="proj-add" href="/projects" title="Новая нить">＋</a>
+  </div>
+  {% for p in projects %}
+  {% set ts = (thread_states | default({})).get(p.id) %}
+  <a class="nav-item proj-item {% if active == 'project:' ~ p.id %}active{% endif %}"
+     href="/project/{{ p.id }}">
+    <span class="nav-ic">{{ icon('thread') }}</span> <span class="nav-label">{{ p.name }}</span>
+    {% if ts %}<span class="st-pill {{ ts.css }}" title="{{ ts.label }}: на мне {{ ts.on_me }}, чужой ход {{ ts.theirs }}">{{ ts.label }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</nav>
+
+<div class="side-foot">
+  {# The agent's queue status loads itself here (docs/ux-tasks.md §13). #}
+  <div id="agent-status" hx-get="/ui/agent-status" hx-trigger="load" hx-swap="outerHTML"></div>
+  <a href="/settings" class="nav-item {% if active == 'settings' %}active{% endif %}">
+    <span class="nav-ic">{{ icon('gear') }}</span> <span class="nav-label">Настройки</span>
+  </a>
+</div>

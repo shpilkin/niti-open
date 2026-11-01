@@ -1,0 +1,69 @@
+{% if space_error %}<div class="banner warn">{{ space_error }}</div>{% endif %}
+{% for row in space_rows %}
+{% set sp = row.space %}
+<div class="space-card" id="space-{{ sp.id }}">
+  <form class="space-head" hx-post="/settings/spaces/{{ sp.id }}" hx-target="#spaces"
+        hx-swap="innerHTML">
+    <span class="space-ic">{{ icon("globe", "ic-md") }}</span>
+    <input class="space-name" name="name" value="{{ sp.name }}" required
+           title="Название пространства">
+    <select name="model_connection_id" class="bulk-type" title="Модель, которая читает всё в этом пространстве">
+      <option value="">Модель по умолчанию{% if default_model_name %} ({{ default_model_name }}){% endif %}</option>
+      {% for c in connections %}
+      <option value="{{ c.id }}" {% if sp.model_connection_id == c.id %}selected{% endif %}
+              {% if not c.enabled %}disabled{% endif %}>{{ c.name }} · {{ c.model }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn sm" type="submit">Сохранить</button>
+    {% if row.delete_blocker %}
+    <button class="btn sm" type="button" disabled title="{{ row.delete_blocker }}">Удалить</button>
+    {% else %}
+    <button class="btn sm danger" type="button" hx-post="/settings/spaces/{{ sp.id }}/delete"
+            hx-target="#spaces" hx-swap="innerHTML"
+            hx-confirm="Удалить пустое пространство «{{ sp.name }}»?">Удалить</button>
+    {% endif %}
+  </form>
+
+  <h4 class="space-sub">{{ icon("mail", "ic-sm") }} Ящики</h4>
+  {% with accounts=row.accounts, spaces=spaces %}{% include "_accounts.html" %}{% endwith %}
+
+  <h4 class="space-sub">{{ icon("sent", "ic-sm") }} Telegram-боты</h4>
+  {% if row.bots %}
+  <ul class="acc-list">
+    {% for b in row.bots %}
+    <li class="acc-row {% if not b.enabled %}paused{% endif %}">
+      <form class="bot-form" hx-post="/settings/bots/{{ b.id }}" hx-target="#spaces" hx-swap="innerHTML">
+        <input name="name" value="{{ b.name }}" title="Название бота">
+        <input name="token" type="password" autocomplete="off" placeholder="токен: пусто — оставить">
+        <input name="chat_id" type="text" inputmode="numeric" autocomplete="off"
+               value="{{ b.chat_id if b.chat_id else '' }}" placeholder="chat id">
+        <label class="check-row"><input type="checkbox" name="enabled" value="1"
+               {% if b.enabled %}checked{% endif %}> включён</label>
+        <button class="btn sm" type="submit">Сохранить</button>
+        <button class="btn sm danger" type="button" hx-post="/settings/bots/{{ b.id }}/delete"
+                hx-target="#spaces" hx-swap="innerHTML" hx-confirm="Удалить бота «{{ b.name }}»?">Удалить</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <details class="adv">
+    <summary>Добавить бота</summary>
+    <form class="bot-form" hx-post="/settings/spaces/{{ sp.id }}/bots" hx-target="#spaces"
+          hx-swap="innerHTML">
+      <input name="name" placeholder="название" value="{{ sp.name }}">
+      <input name="token" type="password" autocomplete="off" placeholder="токен от @BotFather" required>
+      <input name="chat_id" type="text" inputmode="numeric" autocomplete="off" placeholder="chat id">
+      <button class="btn sm primary" type="submit">Добавить</button>
+    </form>
+    <p class="hint">Всё, что вы пишете боту, попадает в «Разобрать» этого пространства;
+      пересланное сообщение — как «нужен ответ» от его автора. Chat id бот назовёт сам в
+      ответ на /start. Изменения подхватываются в течение минуты, перезапуск не нужен.</p>
+  </details>
+</div>
+{% endfor %}
+
+<form class="space-new" hx-post="/settings/spaces" hx-target="#spaces" hx-swap="innerHTML">
+  <input name="name" placeholder="Новое пространство, например «Личное»" required>
+  <button class="btn sm primary" type="submit">Создать</button>
+</form>

@@ -1,0 +1,5 @@
+{% if error %}
+<div class="tr err"><div class="tr-head">❌ Не удалось отправить</div><div class="tr-msg">{{ error }}</div></div>
+{% else %}
+<div class="tr ok"><div class="tr-head">✅ Отправлено: {{ to }}</div></div>
+{% endif %}

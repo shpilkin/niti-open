@@ -1,0 +1,59 @@
+{% if reindex is defined %}
+  <div class="tr ok"><div class="tr-head">Индекс перестроен</div>
+    <div class="tr-msg">Документов: <b>{{ reindex_total }}</b>
+      (письма {{ reindex.mail }}, обязательства {{ reindex.card }},
+      встречи {{ reindex.meeting }}, календарь {{ reindex.event }},
+      люди {{ reindex.person }}, проекты {{ reindex.project }}).</div></div>
+{% elif compact is defined %}
+  {% if compact.skipped == 'no_disk_space' %}
+  <div class="tr err"><div class="tr-head">Не хватает места на диске</div>
+    <div class="tr-msg">Для сжатия нужно {{ compact.need | size }} свободного места,
+      сейчас доступно {{ compact.free_disk | size }}. База не тронута.</div></div>
+  {% elif compact.skipped %}
+  <div class="tr ok"><div class="tr-head">Сжатие не требуется</div>
+    <div class="tr-msg">База не на SQLite.</div></div>
+  {% elif compact.freed %}
+  <div class="tr ok"><div class="tr-head">Готово</div>
+    <div class="tr-msg">Было {{ compact.before | size }}, стало {{ compact.after | size }} —
+      освобождено <b>{{ compact.freed | size }}</b>.</div></div>
+  {% else %}
+  <div class="tr ok"><div class="tr-head">Сжимать нечего</div>
+    <div class="tr-msg">Файл и так плотный: {{ compact.after | size }}.</div></div>
+  {% endif %}
+{% elif result is defined %}
+  {# After a prune: report what was removed. #}
+  {% if result.emails == 0 %}
+  <div class="tr ok"><div class="tr-head">Нечего удалять</div>
+    <div class="tr-msg">Писем старше выбранного срока не нашлось.</div></div>
+  {% else %}
+  <div class="tr ok">
+    <div class="tr-head">✅ Удалено локально</div>
+    <div class="tr-msg">
+      Писем: <b>{{ result.emails }}</b>, бесед: <b>{{ result.threads }}</b>,
+      задач/обещаний: <b>{{ result.action_items }}</b>.
+      На сервере ничего не изменено. Осталось локально: {{ stats.total_emails }} писем.
+    </div>
+  </div>
+  {% endif %}
+{% else %}
+  {# Preview before confirming. #}
+  {% if preview.emails == 0 %}
+  <div class="tr ok"><div class="tr-head">Нечего удалять</div>
+    <div class="tr-msg">Писем старше {{ amount }}
+      {{ "мес." if unit == "months" else "дн." }} не нашлось.</div></div>
+  {% else %}
+  <div class="reason-box">
+    <span class="reason-label">Будет удалено локально</span>
+    Писем: <b>{{ preview.emails }}</b>, бесед: <b>{{ preview.threads }}</b>,
+    задач/обещаний: <b>{{ preview.action_items }}</b>
+    (всё старше {{ amount }} {{ "мес." if unit == "months" else "дн." }}).
+    Сервер не затрагивается. Действие необратимо для локальной копии.
+  </div>
+  <form hx-post="/settings/storage/prune" hx-target="#storage-result" hx-swap="innerHTML"
+        hx-confirm="Удалить {{ preview.emails }} писем из локальной базы? На сервере они останутся.">
+    <input type="hidden" name="amount" value="{{ amount }}">
+    <input type="hidden" name="unit" value="{{ unit }}">
+    <button class="btn danger" type="submit">Удалить локально</button>
+  </form>
+  {% endif %}
+{% endif %}

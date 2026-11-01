@@ -1,0 +1,50 @@
+{# Одна строка почтового списка. Макрос, а не копия разметки: та же строка рисуется в
+   списке, внутри раскрытой беседы и при подгрузке беседы отдельным запросом. #}
+{% macro mail_row(e, email_labels, view, info=None, nested=False) %}
+{% set count = info.count if info else 0 %}
+{# У строки-переписки состояние общее: точка гаснет, когда прочитаны все её письма,
+   а не только последнее. #}
+{% set unread = (info.unread > 0 if info else not e.read_at) and (e.direction == 'inbound') %}
+<li class="mrow {% if e.is_low_value %}muted{% endif %} {% if unread %}unread{% endif %}
+           {% if nested %}sub{% endif %}"
+    data-email-id="{{ e.id }}" data-unread="{{ '1' if unread else '0' }}" draggable="true"
+    hx-get="/email/{{ e.id }}" hx-target="#pane" hx-swap="innerHTML"
+    onclick="document.querySelectorAll('.mrow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');this.classList.remove('unread');this.dataset.unread='0'">
+  <span class="mrow-unread-dot"></span>
+  <div class="mrow-top">
+    <span class="mrow-from">
+      {% if view == "sent" %}
+        → {{ (e.to_addrs[0].name or e.to_addrs[0].email) if e.to_addrs else "—" }}{% if e.to_addrs and e.to_addrs|length > 1 %} +{{ e.to_addrs|length - 1 }}{% endif %}
+      {% else %}
+        {{ e.from_name or e.from_addr }}{% if e.to_addrs %} <span class="mrow-prev">→ {{ e.to_addrs[0].name or e.to_addrs[0].email }}{% if e.to_addrs|length > 1 %} +{{ e.to_addrs|length - 1 }}{% endif %}</span>{% endif %}
+      {% endif %}
+    </span>
+    {% if e.has_attachments %}<span class="mrow-clip" title="Есть вложение">{{ icon('paperclip', 'ic-sm') }}</span>{% endif %}
+    <span class="mrow-time">{{ e.sent_at | local("%d.%m %H:%M") }}</span>
+  </div>
+  <div class="mrow-subj">
+    {{ e.subject or "(без темы)" }}
+    {% if count > 1 %}
+    {# Счётчик и стрелка — один контрол: это одно действие «показать письма беседы». #}
+    <button class="mrow-exp" type="button" data-thread="{{ e.thread_id }}"
+            title="Показать письма беседы" aria-label="Показать письма беседы"
+            aria-expanded="false"><span class="mrow-exp-n">{{ count }}</span>{{
+      icon('chevron', 'ic-sm') }}</button>
+    {% endif %}
+    {% if e.is_low_value %}<span class="tag">рассылка</span>{% endif %}
+  </div>
+  {% if e.body_text %}<div class="mrow-prev">{{ e.body_text[:200] }}</div>{% endif %}
+  {% set lbls = (email_labels | default({})).get(e.id) %}
+  {% if lbls %}
+  <div class="row-labels">
+    {% for l in lbls %}
+    <span class="lbl-chip mini"
+          style="background:{{ l.color }}22;color:{{ l.color }};border-color:{{ l.color }}55">
+      <span class="lbl-dot" style="background:{{ l.color }}"></span>{{ l.name }}
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</li>
+{% if count > 1 %}<li class="mrow-kids" data-kids="{{ e.thread_id }}" hidden></li>{% endif %}
+{% endmacro %}

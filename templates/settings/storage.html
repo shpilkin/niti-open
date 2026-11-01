@@ -1,0 +1,70 @@
+<section class="sec">
+  <h2>Локальное хранилище</h2>
+
+  <ul class="params">
+    <li>Писем локально: <b>{{ stats.total_emails }}</b></li>
+    <li>Бесед локально: <b>{{ stats.total_threads }}</b></li>
+    {% if stats.oldest %}
+    <li>Период: <b>{{ stats.oldest.strftime('%d.%m.%Y') }}</b> — <b>{{ stats.newest.strftime('%d.%m.%Y') }}</b></li>
+    {% endif %}
+    <li>Файл базы: <b>{{ stats.size.bytes | size }}</b>{% if stats.size.free_bytes %},
+      из них свободно внутри файла: <b>{{ stats.size.free_bytes | size }}</b>{% endif %}</li>
+  </ul>
+
+  <div class="reason-box">
+    <span class="reason-label">🔒 Сервер не затрагивается</span>
+    Очистка удаляет письма только из <b>локальной</b> базы и кэша вложений на этом
+    компьютере. На почтовом сервере (Yandex/Gmail) письма остаются нетронутыми —
+    приложение в принципе не умеет удалять почту на сервере.
+  </div>
+
+  <h3>Удалить старые письма локально</h3>
+  <p class="hint">Удаляются целиком беседы, в которых не было активности дольше выбранного
+    срока (вместе с их вложениями, метками и извлечёнными задачами). Беседы с недавними
+    письмами сохраняются полностью.</p>
+
+  <form class="edit" hx-post="/settings/storage/preview" hx-target="#storage-result"
+        hx-swap="innerHTML">
+    <div class="period-row">
+      <span>Старше</span>
+      <input type="number" name="amount" value="3" min="1" max="120" style="width:80px">
+      <select name="unit">
+        <option value="months" selected>месяцев</option>
+        <option value="days">дней</option>
+      </select>
+      <button class="btn" type="submit">Посчитать</button>
+    </div>
+  </form>
+
+  <div id="storage-result"></div>
+</section>
+
+<section class="sec">
+  <h2>Сжать базу</h2>
+  <p class="hint">Удалённые письма и перестроенные индексы освобождают страницы
+    <b>внутри</b> файла — SQLite переиспользует их, но сам файл не уменьшает, и копия
+    базы тоже несёт их с собой. Сжатие переписывает файл без пустых страниц.
+    Идёт минуту-две, приложение в это время лучше не трогать; на диске нужно
+    свободное место примерно в размер базы.</p>
+  <form hx-post="/settings/storage/compact" hx-target="#compact-result" hx-swap="innerHTML"
+        hx-indicator="#compact-wait"
+        hx-confirm="Сжать базу? Это займёт минуту-две, в это время приложение будет ждать.">
+    <button class="btn" type="submit">{{ icon('database', 'ic-sm') }} Сжать базу</button>
+    <span id="compact-wait" class="htmx-indicator hint">Сжимаю…</span>
+  </form>
+  <div id="compact-result"></div>
+</section>
+
+<section class="sec">
+  <h2>Поиск</h2>
+  <p class="hint">Индекс поиска (письма, обязательства, встречи и их расшифровки,
+    календарь, люди, проекты) обновляется сам при каждой записи и раз в пять минут
+    сверяется с базой. Перестроить целиком нужно, только если поиск что-то не находит —
+    на 10 тысячах писем это занимает около 15 секунд.</p>
+  <form hx-post="/settings/storage/reindex" hx-target="#reindex-result" hx-swap="innerHTML"
+        hx-indicator="#reindex-wait">
+    <button class="btn" type="submit">{{ icon('refresh', 'ic-sm') }} Перестроить индекс</button>
+    <span id="reindex-wait" class="htmx-indicator hint">Строю…</span>
+  </form>
+  <div id="reindex-result"></div>
+</section>

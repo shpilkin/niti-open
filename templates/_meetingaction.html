@@ -1,0 +1,5 @@
+{# One action, two targets (docs/ux-tasks.md §15): the list of this space swaps in place
+   and the pane is replaced out of band — a moved or deleted meeting leaves the list AND
+   the pane says what happened. #}
+{% include "_meetinglist.html" %}
+<section class="pane" id="pane" hx-swap-oob="innerHTML">{% include "_meetingpane.html" %}</section>

@@ -1,0 +1,44 @@
+<section class="sec">
+  <h2>Подключить модель</h2>
+  <p class="sec-sub">Claude напрямую (Anthropic) или любой OpenAI-совместимый шлюз
+    (OpenRouter, RouterAI, LiteLLM, свой). Модель «по умолчанию» используется
+    для разбора писем по типам.</p>
+  <div class="prov-cards">
+    {% for key, p in ai_providers.items() %}
+    <a class="prov-card" href="/settings/model/connect/{{ key }}">
+      <span class="prov-card-ic">
+        {%- if key == "anthropic" -%}{{ icon("star") }}
+        {%- elif key in ("openrouter", "routerai") -%}{{ icon("globe") }}
+        {%- elif key == "litellm" -%}S
+        {%- else -%}{{ icon("gear") }}{%- endif -%}
+      </span>
+      <span class="prov-card-label">{{ p.label }}</span>
+      <span class="prov-card-go">→</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="sec">
+  <h2>Добавленные модели</h2>
+  <div id="models">
+    {% include "_models.html" %}
+  </div>
+</section>
+
+<section class="sec">
+  <h2>Расход модели</h2>
+  <p class="sec-sub">Вызовы и токены по журналу решений ассистента (разбор писем,
+    классификация проектов). Полезно, чтобы стоимость шлюза не была сюрпризом.</p>
+  {% if llm_usage %}
+  <ul>
+    {% for u in llm_usage %}
+    <li>За {{ u.period }}: <b>{{ u.calls }}</b> вызовов ·
+      <b>{{ "{:,}".format(u.tokens_in).replace(",", " ") }}</b> токенов на входе ·
+      <b>{{ "{:,}".format(u.tokens_out).replace(",", " ") }}</b> на выходе</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="sec-sub">Пока нет данных — появятся после первого разбора писем.</p>
+  {% endif %}
+</section>

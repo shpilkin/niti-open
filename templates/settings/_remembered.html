@@ -1,0 +1,24 @@
+{# Строки под редактором: «Запомнить» с карточек и из MCP и подтверждённые находки захвата.
+   Каждая — отдельный факт со своей датой: в промпт они идут вслед за текстом профиля,
+   а забыть можно по одной, не трогая текст в редакторе. Строка — capture.Proposal:
+   у находки есть вид и ссылка на источник, у «Запомнить» — нет. #}
+<div id="remembered-{{ space.id }}">
+  {% if remembered %}
+  <p class="hint">Запомнено с карточек, через MCP и из подтверждённых находок — ассистент
+    получает это вместе с профилем:</p>
+  <div class="reason-box">
+    {% for r in remembered %}
+    <div class="sugg-row">
+      <span>{{ r.fact.valid_from | local("%d.%m.%Y") }} — {{ r.fact.text }}{% if r.source_label %}
+        <span class="hint-inline">({{ r.kind_label }};
+          <a href="#" hx-get="{{ r.url }}" hx-target="#pane" hx-swap="innerHTML">{{ r.source_label }}</a>)</span>{% endif %}</span>
+      <form hx-post="/settings/profile/{{ space.id }}/forget"
+            hx-target="#memory-{{ space.id }}" hx-swap="outerHTML">
+        <input type="hidden" name="fact_id" value="{{ r.fact.id }}">
+        <button class="btn sm" type="submit">Забыть</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

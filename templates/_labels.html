@@ -1,0 +1,77 @@
+{% if applied is not none %}
+<div class="banner">Готово: правила применены к {{ applied }} письмам.</div>
+{% endif %}
+
+<div class="lab-block">
+  <h3>Метки</h3>
+  {% if labels %}
+  <div class="chips-row">
+    {% for l in labels %}
+    <span class="lbl-chip" style="background:{{ l.color }}22;color:{{ l.color }};border-color:{{ l.color }}55">
+      <span class="lbl-dot" style="background:{{ l.color }}"></span>{{ l.name }}
+      <button class="chip-x" title="Удалить метку"
+              hx-post="/settings/labels/{{ l.id }}/delete" hx-target="#labels-section" hx-swap="innerHTML"
+              hx-confirm="Удалить метку и связанные правила?">{{ icon('x') }}</button>
+    </span>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="acc-empty">Меток пока нет.</div>
+  {% endif %}
+  <form class="inline-form" hx-post="/settings/labels" hx-target="#labels-section" hx-swap="innerHTML"
+        hx-on::after-request="this.reset()">
+    <input name="name" placeholder="Название метки" required>
+    <input name="color" type="color" value="#10a37f" title="Цвет">
+    <button class="btn sm primary" type="submit">Добавить метку</button>
+  </form>
+</div>
+
+<div class="lab-block">
+  <h3>Правила по отправителю</h3>
+  {% if rules %}
+  <ul class="rule-list">
+    {% for rule, lbl in rules %}
+    <li class="rule-row">
+      <span class="rule-cond">если {{ "адрес" if rule.match_type == "address" else "домен" }}
+        = <code>{{ rule.pattern }}</code></span>
+      <span class="rule-arrow">→</span>
+      {% if rule.action == 'ignore' %}
+      <span class="tag">не разбирать письма</span>
+      {% elif rule.action == 'delegate' %}
+      <span class="tag">делегировать: {{ rule.value }}</span>
+      {% elif lbl %}
+      <span class="lbl-chip" style="background:{{ lbl.color }}22;color:{{ lbl.color }};border-color:{{ lbl.color }}55">
+        <span class="lbl-dot" style="background:{{ lbl.color }}"></span>{{ lbl.name }}
+      </span>
+      {% endif %}
+      <button class="act" title="Удалить правило"
+              hx-post="/settings/rules/{{ rule.id }}/delete"
+              hx-target="#labels-section" hx-swap="innerHTML">{{ icon('x', 'ic-sm') }}</button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="acc-empty">Правил пока нет.</div>
+  {% endif %}
+
+  {% if labels %}
+  <form class="inline-form" hx-post="/settings/rules" hx-target="#labels-section" hx-swap="innerHTML"
+        hx-on::after-request="this.reset()">
+    <span>если</span>
+    <select name="match_type">
+      <option value="address">адрес</option>
+      <option value="domain">домен</option>
+    </select>
+    <input name="pattern" placeholder="ivan@acme.ru или acme.ru" required>
+    <span>→</span>
+    <select name="label_id">
+      {% for l in labels %}<option value="{{ l.id }}">{{ l.name }}</option>{% endfor %}
+    </select>
+    <button class="btn sm primary" type="submit">Добавить правило</button>
+  </form>
+  <button class="btn sm" hx-post="/settings/rules/apply" hx-target="#labels-section" hx-swap="innerHTML"
+          style="margin-top:10px">Применить к существующим письмам</button>
+  {% else %}
+  <p class="hint">Сначала создай хотя бы одну метку, чтобы добавлять правила.</p>
+  {% endif %}
+</div>

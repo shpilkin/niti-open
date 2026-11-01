@@ -1,0 +1,25 @@
+{% if r.ok %}
+<div class="tr ok">
+  <div class="tr-head">✅ Подключение успешно — найдено {{ r.folders | length }} папок</div>
+  {% if r.suggested_sent %}
+  <div class="tr-sugg">
+    Рекомендуемые папки: «Входящие» = <code>{{ r.suggested_inbox }}</code>,
+    «Отправленные» = <code>{{ r.suggested_sent }}</code>
+    <button type="button" class="btn sm"
+            onclick="applySuggestion('{{ r.suggested_inbox }}', '{{ r.suggested_sent | replace("'", "\\'") }}')">
+      Подставить
+    </button>
+  </div>
+  {% else %}
+  <div class="tr-sugg muted">Папку «Отправленные» не удалось определить автоматически — укажи её вручную ниже.</div>
+  {% endif %}
+  <datalist id="folderlist">
+    {% for f in r.folders %}<option value="{{ f }}">{% endfor %}
+  </datalist>
+</div>
+{% else %}
+<div class="tr err">
+  <div class="tr-head">❌ Не удалось подключиться</div>
+  <div class="tr-msg">{{ r.error }}</div>
+</div>
+{% endif %}

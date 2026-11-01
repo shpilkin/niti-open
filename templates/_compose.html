@@ -1,0 +1,92 @@
+<div class="pane-inner compose">
+  {% if back_url %}
+  <button class="back-link" type="button"
+          onclick="window.composeBack('{{ back_url }}')">← Назад</button>
+  {% endif %}
+  <div class="pane-title">
+    {% if ctx and ctx.id %}Черновик{% else %}{{
+      "Переслать" if ctx and ctx.forward_email_id else ("Ответ" if ctx else "Новое письмо") }}{% endif %}
+  </div>
+  {% if not accounts %}
+    <div class="acc-empty">Сначала подключи почтовый ящик в Настройках.</div>
+  {% else %}
+  {% set sel_acc = (ctx.account_id if ctx and ctx.account_id else accounts[0].id) %}
+  {# Reply/forward: pre-fill the quoted original into the (editable) body. The signature's
+     TEXT form is inserted inline BETWEEN your text and the quote — visible and editable;
+     at send the untouched block is swapped for the rich HTML version (edited text wins,
+     deleted = no signature). An assistant draft (ctx.draft) goes above it all. #}
+  {% set stexts = sig_texts | default({}) %}
+  {% set sel_sig_text = stexts.get(sel_acc | string, '') %}
+  {% set sig_block = ("\n\n-- \n" ~ sel_sig_text) if sel_sig_text else "" %}
+  {% set body_prefill = sig_block ~ ("\n\n" ~ ctx.quoted.lstrip("\n") if ctx and ctx.quoted else "") %}
+  {% if ctx and ctx.draft %}{% set body_prefill = ctx.draft ~ body_prefill %}{% endif %}
+  {# Черновик открывается ровно тем текстом, каким его бросили: подпись в нём уже своя. #}
+  {% if ctx and ctx.body %}{% set body_prefill = ctx.body %}{% endif %}
+  <form class="compose-form" hx-post="/send" hx-target="#send-result" hx-swap="innerHTML"
+        hx-encoding="multipart/form-data" hx-disabled-elt="find button[type=submit]">
+    <script type="application/json" id="compose-sig-texts">{{ stexts | tojson }}</script>
+    {# Шрифт поля — тот же, которым уйдёт письмо (он берётся из подписи ящика). Иначе
+       человек набирает системным, а получатель видит корпоративный. #}
+    {% set sfonts = sig_fonts | default({}) %}
+    <script type="application/json" id="compose-body-fonts">{{ sfonts | tojson }}</script>
+    <input type="hidden" name="in_reply_to" value="{{ ctx.in_reply_to if ctx and ctx.in_reply_to else '' }}">
+    <input type="hidden" name="references" value="{{ (ctx.references | join(' ')) if ctx and ctx.references else '' }}">
+    <input type="hidden" name="back_url" value="{{ back_url | default('') }}">
+    <input type="hidden" name="forward_email_id" value="{{ ctx.forward_email_id if ctx and ctx.forward_email_id else '' }}">
+    {# Черновик сохраняется сам (ui.js): id проставляется сюда после первого сохранения,
+       чтобы следующее правило ту же строку. #}
+    <input type="hidden" name="draft_id" value="{{ ctx.id if ctx and ctx.id else '' }}">
+    <label>От
+      <select name="account_id" id="compose-account" data-prev="{{ sel_acc }}">
+        {% for a in accounts %}
+        <option value="{{ a.id }}" {% if a.id == sel_acc %}selected{% endif %}>
+          {{ a.name }} ({{ a.login }})
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    {# Подсказка адресов (ui.js): список приходит с сервера, выбор — стрелками, Enter,
+       Tab или мышью. Адрес подставляется в последнюю позицию через запятую. #}
+    <label>Кому<span class="ac">
+      <input name="to" value="{{ ctx.to if ctx else '' }}" required
+             autocomplete="off" data-recipients>
+      <span class="ac-drop"></span>
+    </span></label>
+    <label>Копия<span class="ac">
+      <input name="cc" value="{{ ctx.cc if ctx and ctx.cc else '' }}"
+             placeholder="через запятую (необязательно)" autocomplete="off" data-recipients>
+      <span class="ac-drop"></span>
+    </span></label>
+    <label>Тема<input name="subject" value="{{ ctx.subject if ctx else '' }}"></label>
+    <label class="field-body">Текст<textarea name="body" rows="8" id="compose-body"
+      style="{{ sfonts.get(sel_acc | string, '') }}"
+      placeholder="Текст письма…">
+{{ body_prefill }}</textarea></label>
+    <input type="file" id="compose-files" name="attachments" multiple hidden>
+    <div class="att-row">
+      <button class="btn attach-btn" type="button" onclick="window.composeAttachOpen()"
+              title="Прикрепить файл (или перетащите файлы в окно письма)">{{ icon('paperclip') }} Прикрепить</button>
+      <span class="att-hint">{% if ctx and ctx.id %}вложения в черновике не сохраняются — приложите
+        файлы перед отправкой{% else %}или перетащите файлы сюда{% endif %}</span>
+    </div>
+    <div class="att-chips" id="att-chips"></div>
+    {# Вложения оригинала при пересылке: их прикладывает сервер, но видеть их надо здесь —
+       иначе про недоступный файл человек узнаёт только отказом при отправке. #}
+    {% set fwd_files = ctx.forward_files if ctx and ctx.forward_files else [] %}
+    {% if fwd_files %}
+    <div class="att-chips">
+      {% for f in fwd_files %}
+      <span class="att-chip {% if not f.here %}missing{% endif %}">{{ icon('paperclip', 'ic-sm') }}
+        {{ f.name }}{% if not f.here %} <span class="att-hint">нет на этом компьютере</span>{% endif %}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="wz-actions">
+      <button class="btn primary" type="submit"><span class="lbl-idle">Отправить</span><span class="lbl-busy">Отправляю…</span></button>
+      <button class="btn" type="button"
+              onclick="window.composeBack('{{ back_url | default('') }}')">Отмена</button>
+    </div>
+  </form>
+  <div id="send-result"></div>
+  {% endif %}
+</div>

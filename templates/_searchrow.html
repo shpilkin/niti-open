@@ -1,0 +1,35 @@
+{# One search hit, whatever it is. Kind decides the icon, the target and whether the
+   click fills the right-hand pane (mail, card, meeting, event, person) or navigates
+   (project). #}
+{% set KIND_ICON = {'mail':'mail','card':'check','meeting':'mic','turn':'mic',
+                    'event':'calendar','person':'user','project':'folder','fact':'star'} %}
+{% set KIND_CHIP = {'mail':'info','card':'commitment','meeting':'delegated','turn':'delegated',
+                    'event':'waiting','person':'info','project':'info','fact':'info'} %}
+
+{% macro result_row(r, labels, compact=False) %}
+<li class="srow{% if not r.url %} static{% endif %}"
+    {% if r.url and r.pane %}
+      hx-get="{{ r.url }}" hx-target="#pane" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.srow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')"
+    {% elif r.url %}
+      onclick="window.location='{{ r.url }}'"
+    {% endif %}
+    data-url="{{ r.url }}" data-pane="{{ '1' if r.pane else '0' }}">
+  <span class="chip sm {{ KIND_CHIP.get(r.kind, 'info') }}"
+        title="{{ labels.get(r.kind, '') }}">{{ icon(KIND_ICON.get(r.kind, 'dot')) }}</span>
+  <div class="srow-main">
+    <div class="srow-top">
+      <span class="srow-title">{{ r.title | hl }}</span>
+      {%- if r.kind == 'mail' and r.obj and r.obj.has_attachments %}
+      <span class="mrow-clip" title="Есть вложение">{{ icon('paperclip', 'ic-sm') }}</span>
+      {%- endif %}
+      {# У письма важен час: «в 9 утра» и «вечером» — разные письма одного дня. У
+         остальных видов время ничего не уточняет. #}
+      {% if r.at %}<span class="srow-date">{{ r.at | local(
+        "%d.%m.%Y %H:%M" if r.kind == 'mail' else "%d.%m.%Y") }}</span>{% endif %}
+    </div>
+    {% if r.who %}<div class="srow-who">{{ r.who }}</div>{% endif %}
+    {% if r.snippet and not compact %}<div class="srow-snip">{{ r.snippet | hl }}</div>{% endif %}
+  </div>
+</li>
+{% endmacro %}

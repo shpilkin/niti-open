@@ -1,0 +1,17 @@
+<details class="edit" id="remember-{{ item.id }}"{% if remembered %} open{% endif %}>
+  <summary>{{ icon('database', 'ic-sm') }} Запомнить</summary>
+  {% if remembered %}<div class="banner ok">{{ remembered }}</div>{% endif %}
+  <form hx-post="/item/{{ item.id }}/remember" hx-target="#remember-{{ item.id }}" hx-swap="outerHTML">
+    <label>Куда
+      <select name="target">
+        {% if remember_addr or remember_name %}<option value="person">О {{ remember_name or remember_addr }}</option>{% endif %}
+        <option value="profile">В профиль пространства — о себе, командах, правилах</option>
+      </select>
+    </label>
+    <label>Что запомнить — ассистент получит это как справочные данные
+      <textarea name="text" rows="3" required
+                placeholder="Например: счета от этой компании всегда пересылаю в бухгалтерию"></textarea>
+    </label>
+    <button class="btn primary sm" type="submit">Запомнить</button>
+  </form>
+</details>

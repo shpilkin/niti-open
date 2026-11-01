@@ -1,0 +1,27 @@
+{# Месяц: недели строками, в дне до трёх встреч и «ещё N». Число дня и «ещё» открывают
+   этот день; встреча — свою панель. #}
+{% import "_calnav.html" as nav %}
+<div class="cal-month">
+  {% for wk in month.weeks %}
+  <div class="cal-mweek">
+    {% for d in wk %}
+    <div class="cal-mday{% if not d.in_month %} out{% endif %}{% if d.today %} today{% endif %}{% if d.date.weekday() >= 5 %} weekend{% endif %}"
+         data-date="{{ d.date }}">
+      <button class="cal-mnum" type="button" title="Открыть день"
+              {{ nav.go(link(view='day', date=d.date)) }}>{{ d.date.day }}</button>
+      {% for ev in d.shown %}
+      {% set c = color_of(ev) %}
+      <button class="cal-mline{% if ev.cancelled_at %} cancelled{% endif %}" type="button"
+              style="--ev:var(--cal-{{ c }})" hx-get="/event/{{ ev.id }}" hx-target="#pane"
+              hx-swap="innerHTML" title="{{ ev.title or 'Без названия' }}">
+        <span class="cal-dot"></span>{% if not all_day(ev) %}<span class="cal-mtime">{{ ev.start_at | local("%H:%M") }}</span>{% endif %}<span class="cal-mtitle">{{ ev.title or "Без названия" }}</span>
+      </button>
+      {% endfor %}
+      {% if d.more %}
+      <button class="cal-more" type="button" {{ nav.go(link(view='day', date=d.date)) }}>ещё {{ d.more }}</button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>

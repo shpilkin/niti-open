@@ -1,0 +1,2 @@
+{% from "_mailrow.html" import mail_row %}
+{% for e in emails %}{{ mail_row(e, email_labels, view, nested=True) }}{% endfor %}

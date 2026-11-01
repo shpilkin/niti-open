@@ -1,0 +1,61 @@
+{# Совет ассистента по карточке (docs/feature-card-advice.md), четыре строки: что
+   сделать и о чём тред, важность с доводом, до трёх действий, цена бездействия — и за
+   каждым утверждением улики, на которые оно опирается: чип открывает письмо, карточку,
+   встречу или тред в этой же панели.
+   Утверждение без улик сюда не доходит — его выбросил advice.vet. Блок грузится после
+   панели и заменяет свою заглушку. Модель отсюда не зовут: показывается посчитанное
+   воркером, а кнопка справа заказывает новый счёт. #}
+{% import "_macros.html" as macros %}
+{% macro cite(refs) -%}
+  {{- macros.ev_chips(refs, view=view, back='/item/' ~ item.id ~ '?view=' ~ view, limit=2) -}}
+{%- endmacro %}
+{# Пока совет в очереди или ждёт вернувшуюся модель, блок сам себя перепрашивает: это
+   чтение из базы, модель при этом не трогаем. Придёт текст — атрибута опроса в новой
+   разметке не будет, и опрос прекратится сам. #}
+{% set waiting = state in ('queued', 'unavailable') %}
+<div class="reason-box advice" id="advice-{{ item.id }}"{% if waiting %}
+     hx-get="/item/{{ item.id }}/advice?view={{ view }}" hx-trigger="every 8s"
+     hx-swap="outerHTML"{% endif %}>
+  <span class="reason-label">{{ icon('flag', 'ic-sm') }} Что делать
+    {% if advice and advice.generated_at %}<span class="hint-inline">· {{ advice.generated_at | local("%d.%m %H:%M") }}</span>{% endif %}
+    {% if advice and waiting %}<span class="hint-inline">· считаю новый</span>{% endif %}
+    <button class="act" type="button" title="Пересчитать совет"
+            hx-get="/item/{{ item.id }}/advice?view={{ view }}&refresh=1"
+            hx-target="#advice-{{ item.id }}" hx-swap="outerHTML">{{
+      icon('refresh', 'ic-sm ic-spin') }}</button>
+  </span>
+  {% if advice is none %}
+  <div class="hint-inline">
+    {%- if no_model %}Модель для пространства не настроена (Настройки → AI / извлечение).
+    {%- elif state == 'queued' %}Считаю — поле заполнится само, ждать не нужно.
+    {%- elif state == 'unavailable' %}Модель недоступна — посчитаю, как только она ответит. Или попробуйте сейчас, кнопкой справа.
+    {%- elif state == 'failed' %}Совет не получился. Попробуй «пересчитать».
+    {%- else %}Совет ещё не посчитан.{% endif %}</div>
+  {% elif advice.is_empty %}
+  <div class="hint-inline">Совет не получился — модель не дала ни одного утверждения с уликой. Попробуй «пересчитать».</div>
+  {% else %}
+  {% if advice.recommendation %}
+  <div class="adv-lead"><b>{{ advice.label }}</b>{% if advice.target %} {{ cite([advice.target]) }}{% endif %}{% if advice.why %} — {{ advice.why }}{% endif %} {{ cite(advice.refs) }}</div>
+  {% endif %}
+  {# Степень — правило по данным карточки (advice.importance), довод — от модели. #}
+  <div class="adv-imp"><span class="st-pill {{ importance }}">Важность: {{ importance_label }}</span>{% if advice.importance_why %} {{ advice.importance_why.text }} {{ cite(advice.importance_why.refs) }}{% endif %}</div>
+  {# The one click the advice may offer: the obligation stays on the other card, this one
+     leaves the board — with the same undo toast as any resolving action. #}
+  {% if advice.recommendation == 'close_duplicate' and advice.target %}
+  <div class="pane-actions">
+    <button class="btn sm success" hx-post="/item/{{ item.id }}/duplicate"
+            hx-vals='{"view":"{{ view }}","target":"{{ advice.target.id }}","advance":1}'
+            hx-target="#list" title="Закрыть эту карточку — обязательство остаётся на {{ advice.target.label }}">
+      {{ icon('check', 'ic-sm') }} Закрыть как дубль</button>
+  </div>
+  {% endif %}
+  {% if advice.points %}
+  <div class="adv-points">Сделать:
+    <ul>{% for p in advice.points %}<li>{{ p.text }} {{ cite(p.refs) }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if advice.risk %}
+  <div class="adv-risk">{{ icon('clock', 'ic-sm') }} {{ advice.risk.text }} {{ cite(advice.risk.refs) }}</div>
+  {% endif %}
+  {% endif %}
+</div>

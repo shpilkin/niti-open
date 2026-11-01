@@ -1,0 +1,21 @@
+{# Календарик перехода на дату. Листает свои месяцы на месте; день открывает календарь на
+   нём, в том же виде. Выделены дни, которые сейчас показаны. #}
+{% import "_calnav.html" as nav %}
+<div class="cal-mini">
+  <div class="cal-mini-head">
+    <button class="act" type="button" title="Предыдущий месяц"
+            hx-get="/calendar/mini?month={{ mini_prev }}&{{ link() }}" hx-target="#cal-mini"
+            hx-swap="innerHTML">{{ icon('chevron-left', 'ic-sm') }}</button>
+    <span>{{ mini_title }}</span>
+    <button class="act" type="button" title="Следующий месяц"
+            hx-get="/calendar/mini?month={{ mini_next }}&{{ link() }}" hx-target="#cal-mini"
+            hx-swap="innerHTML">{{ icon('chevron-right', 'ic-sm') }}</button>
+  </div>
+  <div class="cal-mini-grid">
+    {% for w in WEEKDAYS %}<span class="cal-mini-wd">{{ w }}</span>{% endfor %}
+    {% for wk in mini_weeks %}{% for d in wk %}
+    <button class="cal-mini-day{% if d.month != mini_first.month %} out{% endif %}{% if d == today %} today{% endif %}{% if mini_shown[0] <= d <= mini_shown[1] %} shown{% endif %}"
+            type="button" {{ nav.go(link(date=d)) }}>{{ d.day }}</button>
+    {% endfor %}{% endfor %}
+  </div>
+</div>

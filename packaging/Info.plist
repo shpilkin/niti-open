@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Niti</string>
+    <key>CFBundleDisplayName</key>
+    <string>Niti</string>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.shpilkin.niti</string>
+    <key>CFBundleVersion</key>
+    <string>0.1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>EmailReaderApp</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <!-- Regular app: dock icon + window, plus a menubar item. -->
+    <key>LSUIElement</key>
+    <false/>
+    <!-- ~/Library/Application Support/Niti — the database, config.yaml and .env. -->
+    <key>NitiDataDirectory</key>
+    <string>Niti</string>
+    <!-- The backend listens on 127.0.0.1, ports 8780…8790. -->
+    <key>NitiPortBase</key>
+    <integer>8780</integer>
+    <!-- Talks only to the bundled backend on 127.0.0.1, which is http. -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+    </dict>
+</dict>
+</plist>

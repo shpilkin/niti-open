@@ -1,0 +1,19 @@
+{% import "_searchrow.html" as sr %}
+{% if not q %}
+  <div class="palette-hint">Ищите по письмам, обязательствам, встречам, календарю, людям,
+    проектам и памяти. Уточнения: <code>от:</code> <code>кому:</code> <code>тема:</code>
+    <code>где:</code> <code>после:</code> <code>до:</code></div>
+{% elif not total %}
+  <div class="palette-hint">Ничего не нашлось по «{{ q }}».</div>
+{% else %}
+{% for kind, label, rows in groups %}
+<div class="tsec">{{ label }} <span class="tsec-n">{{ rows | length }}</span></div>
+<ul class="srows">
+  {% for r in rows %}{{ sr.result_row(r, KIND_LABEL, compact=True) }}{% endfor %}
+</ul>
+{% endfor %}
+<div class="palette-hint">
+  <kbd>↑</kbd><kbd>↓</kbd> выбрать · <kbd>Enter</kbd> открыть ·
+  <kbd>⌘Enter</kbd> все результаты · <kbd>Esc</kbd> закрыть
+</div>
+{% endif %}

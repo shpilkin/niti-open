@@ -1,0 +1,22 @@
+{% set counts = counts | default({}) %}
+{# Доски пространства из настроек (docs/ux-tasks.md §17.5); «Архив» ниже своей строкой. #}
+{% for b in boards | default([]) if b.kind != "done" %}
+<a class="nav-item {% if view == b.key %}active{% endif %}" href="/view/{{ b.key }}">
+  <span class="nav-ic">{{ icon(b.icon) }}</span>
+  <span class="nav-label">{{ b.name }}</span>
+  {% set c = counts.get(b.key, 0) %}
+  {% if c %}<span class="badge">{{ c }}</span>{% endif %}
+</a>
+{% endfor %}
+<div class="nav-sep"></div>
+<a class="nav-item {% if view == 'done' %}active{% endif %}" href="/view/done">
+  <span class="nav-ic">{{ icon('archive') }}</span> <span class="nav-label">Архив</span>
+</a>
+
+<div class="nav-cap">Почта</div>
+<a class="nav-item {% if view == 'inbox' %}active{% endif %}" href="/mail/inbox">
+  <span class="nav-ic">{{ icon('inbox') }}</span> <span class="nav-label">Входящие</span>
+</a>
+<a class="nav-item {% if view == 'sent' %}active{% endif %}" href="/mail/sent">
+  <span class="nav-ic">{{ icon('sent') }}</span> <span class="nav-label">Отправленные</span>
+</a>

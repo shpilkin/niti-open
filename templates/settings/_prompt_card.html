@@ -1,0 +1,33 @@
+<div class="prompt-card" id="prompt-{{ space_id }}-{{ key }}">
+  <div class="prompt-head">
+    <span class="prompt-title">{{ title }}</span>
+    {% if optional | default(false) %}
+      {% if value %}<span class="st-pill ok">включён</span>
+      {% else %}<span class="st-pill">выключен</span>{% endif %}
+    {% elif is_custom %}<span class="st-pill ok">с дополнениями</span>
+    {% else %}<span class="st-pill">стандартный</span>{% endif %}
+  </div>
+  <p class="prompt-desc">{{ description }}</p>
+  <form hx-post="/settings/prompts/{{ space_id }}/{{ key }}"
+        hx-target="#prompt-{{ space_id }}-{{ key }}" hx-swap="outerHTML">
+    {% if not optional | default(false) %}
+    {# Встроенный промпт не редактируется: в нём типы, поля и инструмент. Поле ниже —
+       только дополнения, они дописываются к нему. #}
+    <details class="edit">
+      <summary>Встроенный промпт</summary>
+      <textarea class="prompt-text" rows="12" readonly spellcheck="false">{{ builtin }}</textarea>
+    </details>
+    {% endif %}
+    <textarea class="prompt-text" name="body" rows="{{ 12 if optional | default(false) else 4 }}" spellcheck="false"
+              {% if suggestion %}placeholder="{{ suggestion }}"{% elif not optional | default(false) %}placeholder="Ваши дополнения к встроенному промпту, например: «Сводку пиши короче, по пунктам»"{% endif %}>{{ value }}</textarea>
+    <div class="prompt-actions">
+      <button class="btn primary" type="submit">Сохранить</button>
+      <button class="btn" type="button"
+              hx-post="/settings/prompts/{{ space_id }}/{{ key }}/reset"
+              hx-target="#prompt-{{ space_id }}-{{ key }}" hx-swap="outerHTML"
+              hx-confirm="{{ 'Очистить промпт — конспект перестанет делаться?' if optional | default(false) else 'Убрать дополнения — останется встроенный промпт?' }}"
+              >{{ 'Очистить' if optional | default(false) else 'Убрать дополнения' }}</button>
+      <span class="prompt-status export-ok">{{ status | default('') }}</span>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,57 @@
+{% import "_macros.html" as macros %}
+{% import "_taskrow.html" as tr %}
+{% macro picks(title, group, empty) %}
+<div class="sec">
+  <h2>{{ title }} — {{ group | length }}</h2>
+  {% for p in group %}{% set it = items.get(p.item_id) %}{% if it %}
+  <ul class="trows">{{ tr.task_row(it, 'briefing', actions=False, draggable=False) }}</ul>
+  {# «Почему это здесь» и карточки, из-за которых оно здесь: тот же человек, тот же
+     проект. Чип открывает ту карточку в панели — как улика в совете. #}
+  <p class="sec-sub">{% if p.to %}→ {{ p.to }}. {% endif %}{{ p.why }}
+    {{- macros.ev_chips(p.refs, view='briefing') }}</p>
+  {% endif %}{% endfor %}
+  {% if not group %}<p class="sec-sub">{{ empty }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+<div class="sec">
+  <h2>Брифинг на {{ day_text }}</h2>
+  <p class="sec-sub">
+    {% if briefing.source == 'model' %}Собрал ассистент ({{ briefing.model }}){% else %}Без модели: порядок доски и факты из памяти{% endif %}
+    · {{ briefing.generated_at | local("%H:%M") }}
+  </p>
+  <form method="post" action="/briefing/refresh" class="pane-actions">
+    <button class="btn sm" type="submit">{{ icon('sun', 'ic-sm') }} Обновить</button>
+  </form>
+  {% if briefing.note %}<div class="reason-box">{{ briefing.note }}</div>{% endif %}
+</div>
+
+{% if briefing.calendar %}
+<div class="sec">
+  <h2>Календарь</h2>
+  <ul class="cards">
+    {% for at, title in briefing.calendar %}
+    <li class="card"><div class="chip info sm">{{ icon('calendar') }}</div>
+      <div class="card-main"><div class="card-title">{{ at | local("%H:%M") }} · {{ title }}</div></div></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if briefing.threads %}
+{# Посчитано запросом, а не моделью: состояние Нити — свёртка её открытых обязательств
+   (attention.fold): на мне · затухла · пора напомнить · жду · идёт. #}
+<div class="sec">
+  <h2>Нити — {{ briefing.threads | length }}</h2>
+  {% for t in briefing.threads %}
+  <p class="sec-sub"><span class="st-pill {{ t.css }}">{{ t.label }}</span>
+    <a href="/project/{{ t.project_id }}">{{ t.name }}</a> —
+    на мне {{ t.on_me }}, чужой ход {{ t.theirs }}{% if t.quiet_days is not none %},
+    тишина {{ t.quiet_days }} дн.{% endif %}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+{{ picks('Сфокусируйся', briefing.focus, 'Ничего срочного — доска пуста.') }}
+{{ picks('Отдай', briefing.delegate, 'Нечего делегировать.') }}
+{{ picks('Может подождать', briefing.later, 'Остального нет.') }}

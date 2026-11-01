@@ -1,0 +1,50 @@
+<section class="sec">
+  <h2>Подписи</h2>
+  <p class="sec-sub">Подпись добавляется в конец письма при создании нового, ответе и
+    пересылке — для каждого ящика своя. Можно задать шрифт, цвет и стиль (или просто
+    вставить готовый оформленный текст — форматирование сохранится). То, что видно здесь,
+    и уйдёт в письма. Пусто — подпись не добавляется.</p>
+</section>
+
+{% if not signature_accounts %}
+  <div class="acc-empty">Сначала подключи почтовый ящик в разделе «Пространства».</div>
+{% else %}
+  {% for grp in signature_accounts %}
+  <section class="sec">
+    <h3 class="prompt-acct">{{ icon("mail") }} {{ grp.account.name }}
+      <span class="hint-inline">{{ grp.account.login }}</span></h3>
+    <form class="sig-form" hx-post="/settings/signatures/{{ grp.account.id }}"
+          hx-target="#sig-status-{{ grp.account.id }}" hx-swap="innerHTML">
+      <div class="sig-toolbar">
+        <button type="button" class="sig-btn" data-cmd="bold" title="Жирный"><b>B</b></button>
+        <button type="button" class="sig-btn" data-cmd="italic" title="Курсив"><i>I</i></button>
+        <button type="button" class="sig-btn" data-cmd="underline" title="Подчёркнутый"><u>U</u></button>
+        <label class="sig-color-wrap" title="Цвет текста">
+          <span>A</span><input type="color" class="sig-color" value="#1a1a1a">
+        </label>
+        <select class="sig-font" title="Шрифт">
+          <option value="">Шрифт</option>
+          <option value="-apple-system, Segoe UI, Roboto, sans-serif">Sans</option>
+          <option value="Georgia, 'Times New Roman', serif">Serif</option>
+          <option value="ui-monospace, Menlo, monospace">Mono</option>
+        </select>
+        <select class="sig-size" title="Размер">
+          <option value="">Размер</option>
+          <option value="2">Мелкий</option>
+          <option value="3">Обычный</option>
+          <option value="4">Крупный</option>
+          <option value="5">Очень крупный</option>
+        </select>
+        <button type="button" class="sig-btn" data-cmd="removeFormat" title="Убрать формат">{{ icon('x', 'ic-sm') }}</button>
+      </div>
+      <div class="sig-editor" contenteditable="true"
+           data-ph="Например: Глеб Миронов · +7 …">{{ grp.value | safe }}</div>
+      <textarea name="body" class="sig-hidden" hidden>{{ grp.value }}</textarea>
+      <div class="prompt-actions">
+        <button class="btn primary" type="submit">Сохранить</button>
+        <span class="prompt-status" id="sig-status-{{ grp.account.id }}"></span>
+      </div>
+    </form>
+  </section>
+  {% endfor %}
+{% endif %}

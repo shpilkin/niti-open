@@ -1,0 +1,80 @@
+{# Событие календаря в панели (docs/feature-calendar.md §5.3). Этап 1: что, когда, где,
+   кто — и запись встречи, если она шла в это время: это то, чего нет в Calendar.app.
+   «Подготовка» (карточки с участниками, последние беседы) — следующим этапом. #}
+{% if not event %}
+  {# Не .pane-empty: на экране календаря пустая панель прячется, и ответ «не найдено»
+     пропал бы вместе с ней. #}
+  <div class="pane-inner"><p class="hint-inline">Событие не найдено в этом пространстве.</p></div>
+{% else %}
+{% set start = event.start_at.astimezone() %}
+{% set end = event.end_at.astimezone() if event.end_at else None %}
+<div class="pane-inner" data-event-id="{{ event.id }}">
+  <div class="pane-head">
+    <div class="pane-title">
+      <span class="chip waiting sm">{{ icon('calendar', 'ic-sm') }}</span>
+      <span class="{% if event.cancelled_at %}ev-cancelled{% endif %}">{{ event.title or "Без названия" }}</span>
+      {% if editable is defined and editable is none %}
+      <button class="act" type="button" hx-get="/event/{{ event.id }}/edit" hx-target="#pane"
+              hx-swap="innerHTML" title="Исправить событие">{{ icon('pen', 'ic-md') }}</button>
+      {% endif %}
+      {% if not event.cancelled_at and editable is defined
+            and (editable is none or event.provider_uid.startswith('pending:')) %}
+      <button class="act" type="button" hx-get="/event/{{ event.id }}/delete" hx-target="#pane"
+              hx-swap="innerHTML" title="Удалить событие">{{ icon('trash', 'ic-md') }}</button>
+      {% endif %}
+      <button class="act ev-close" type="button" onclick="closeEvent()"
+              title="Закрыть — сетка снова во всю ширину">{{ icon('x', 'ic-md') }}</button>
+    </div>
+    <div class="pane-sub">
+      {% if all_day %}
+      <span>{{ WEEKDAYS[event.start_at.weekday()] }}, {{ event.start_at.day }} {{ MONTHS[event.start_at.month - 1] }} · весь день</span>
+      {% else %}
+      <span>{{ WEEKDAYS[start.weekday()] }}, {{ start.day }} {{ MONTHS[start.month - 1] }} ·
+        {{ start.strftime('%H:%M') }}{% if end %}–{% if end.date() != start.date() %}{{ end.day }} {{ MONTHS[end.month - 1] }} {% endif %}{{ end.strftime('%H:%M') }}{% endif %}</span>
+      {% endif %}
+      {% if mailbox %}<span>{{ icon('mail', 'ic-sm') }} {{ mailbox.name }}{% if event.calendar_name %} · {{ event.calendar_name }}{% endif %}</span>{% endif %}
+      {% if event.cancelled_at %}<span class="st-pill high">Отменена</span>{% endif %}
+    </div>
+  </div>
+
+  {# В месте часто лежит ссылка на звонок — тогда это ссылка, а не текст. Отдельного поля
+     под звонок пока нет (docs/feature-calendar.md §3), из описания его не выковыриваем. #}
+  {% if event.location %}
+  {% set loc = event.location.strip() %}
+  <p class="ev-line">{{ icon('pin', 'ic-sm') }}
+    {% if loc.startswith('https://') or loc.startswith('http://') %}
+    <a class="ev-link" href="{{ loc }}" target="_blank" rel="noopener">Подключиться к звонку</a>
+    {% else %}{{ loc }}{% endif %}</p>
+  {% endif %}
+
+  {% if event.organizer or event.attendees %}
+  <h3>Участники</h3>
+  <div class="chips-row">
+    {% if event.organizer %}
+    <a class="proj-chip on" hx-get="/person?q={{ event.organizer | urlencode }}" hx-target="#pane"
+       hx-swap="innerHTML" title="Организатор">{{ icon('user', 'ic-sm') }} {{ event.organizer }}</a>
+    {% endif %}
+    {% for a in event.attendees or [] if a.email != event.organizer %}
+    {% set who = a.name or a.email %}
+    <a class="proj-chip" hx-get="/person?q={{ (a.email or a.name) | urlencode }}" hx-target="#pane"
+       hx-swap="innerHTML" title="{{ a.email or '' }}">{{ who }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if recordings %}
+  <h3>Запись встречи</h3>
+  <div class="chips-row">
+    {% for m in recordings %}
+    <a class="proj-chip" hx-get="/meeting/{{ m.id }}" hx-target="#pane" hx-swap="innerHTML">
+      {{ icon('mic', 'ic-sm') }} {{ m.title or "Без названия" }} · {{ m.started_at | local("%H:%M") }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if event.description %}
+  <h3>Описание</h3>
+  <div class="msg-body">{{ event.description }}</div>
+  {% endif %}
+</div>
+{% endif %}

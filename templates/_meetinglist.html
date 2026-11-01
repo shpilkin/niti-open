@@ -1,0 +1,80 @@
+{% if scan_stats %}
+<div class="banner {% if scan_stats.rejected %}warn{% else %}ok{% endif %}">
+  Принято встреч: {{ scan_stats.ingested }}{% if scan_stats.rejected %},
+  отклонено: {{ scan_stats.rejected }} (файлы перенесены в подпапку «rejected»){% endif %}
+</div>
+{% endif %}
+
+{# Разбор встреч. Состояние показываем ДО нажатия: событие, вернувшееся раньше срока
+   (не выбран ящик, нет проектов, нет модели), для очереди «выполнено» — само оно уже
+   не повторится, и без этой кнопки встречи остались бы «не разобрана» навсегда. #}
+{% if parked %}
+<div class="banner warn"><span>Ждут модель: {{ parked }}{% if parked_reason %} — {{ parked_reason }}{% endif %}.
+  Разбор продолжится сам, когда модель снова ответит.</span></div>
+{% endif %}
+{% if process_stats %}
+  {% if process_stats.blocked %}
+  <div class="banner warn"><span>{{ process_stats.blocked }}</span>
+    <a href="/settings/section/meetings">Настроить</a></div>
+  {% elif process_stats.queued %}
+  <div class="banner ok">Поставлено в очередь: {{ process_stats.queued }} — разбор идёт
+    в фоне. Обновите список через минуту.</div>
+  {% else %}
+  <div class="banner ok">Разбирать нечего — все встречи уже обработаны или в очереди.</div>
+  {% endif %}
+{% elif unprocessed %}
+<div class="banner warn">
+  <span>Не разобрано встреч: {{ unprocessed }}{% if routing_blocker %} — {{ routing_blocker }}{% elif routing_failure %} — прошлая попытка сорвалась: {{ routing_failure }}{% endif %}</span>
+  {% if routing_blocker %}
+  <a href="/settings/section/meetings">Настроить</a>
+  {% else %}
+  <button class="btn sm" hx-post="/meetings/process" hx-target="#list" hx-swap="innerHTML"
+          hx-vals='{"filter": "{{ "unrouted" if unrouted else "" }}"}'
+          title="Поставить их в очередь на разбор">Разобрать</button>
+  {% endif %}
+</div>
+{% endif %}
+
+{# The active filter rides on the tabs, which are here even when the list is empty: the
+   actions in ui.js send it back so a restore keeps the «Без нити» view. #}
+<div class="chips-row" id="meeting-filter"{% if unrouted %} data-filter="unrouted"{% endif %}>
+  <span class="src-chip {% if not unrouted %}on{% endif %}"
+        hx-get="/meetings/list" hx-target="#list" hx-swap="innerHTML">Все</span>
+  <span class="src-chip {% if unrouted %}on{% endif %}"
+        hx-get="/meetings/list?filter=unrouted" hx-target="#list" hx-swap="innerHTML">
+    Без нити</span>
+</div>
+
+{% if not meetings %}
+  <div class="empty">
+    <div class="empty-ic">{{ icon('mic') }}</div>
+    <div class="empty-title">{% if unrouted %}Все встречи разложены{% else %}Встреч пока нет{% endif %}</div>
+    <div class="empty-sub">{% if unrouted %}Ни одна запись не осталась без проекта.{% else %}Записи появятся
+      здесь после того, как приложение-диктофон передаст расшифровку.{% endif %}</div>
+  </div>
+{% else %}
+{# The spaces ride along for the row's context menu (ui.js): move to another one, delete. #}
+<ul class="mlist" id="meeting-list" data-space="{{ space_id }}" data-spaces='{{ spaces_json }}'>
+  {% for m in meetings %}
+  <li class="mrow" data-meeting-id="{{ m.id }}"
+      hx-get="/meeting/{{ m.id }}" hx-target="#pane" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.mrow.sel').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">
+    <div class="mrow-top">
+      <span class="mrow-from">{{ m.title or "Без названия" }}</span>
+      <span class="mrow-time">{{ m.started_at | local("%d.%m %H:%M") }}</span>
+    </div>
+    <div class="mrow-subj">
+      {% if m.duration_sec %}<span class="tag">{{ (m.duration_sec // 60) }} мин</span>{% endif %}
+      {% for pm in memberships.get(m.id, []) %}
+      <span class="lbl-chip mini">{{ project_names.get(pm.project_id, "нить") }}</span>
+      {% endfor %}
+      {% if not memberships.get(m.id) %}<span class="tag">без нити</span>{% endif %}
+      {% if m.suggestions %}<span class="tag">есть предложения</span>{% endif %}
+      {% if m.route_note %}<span class="tag">{{ icon('bell', 'ic-sm') }} не разобрана</span>{% endif %}
+    </div>
+    {% if m.summary %}<div class="mrow-prev">{{ m.summary[:180] }}</div>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% include "_pager.html" %}

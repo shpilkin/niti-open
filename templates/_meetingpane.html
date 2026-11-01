@@ -1,0 +1,151 @@
+{% if not meeting %}
+  <div class="pane-empty">Встреча не найдена.</div>
+{% elif meeting.deleted_at %}
+{# Deleted (soft): reachable from the tasks it produced and from the undo toast. #}
+<div class="pane-inner" data-meeting-id="{{ meeting.id }}">
+  <div class="pane-head">
+    <div class="pane-title">
+      <span class="chip info sm">{{ icon('mic', 'ic-sm') }}</span>
+      {{ meeting.title or "Без названия" }}
+    </div>
+    <div class="pane-sub">
+      <span>{{ meeting.started_at | local }}</span>
+      <span class="st">удалена {{ meeting.deleted_at | local }}</span>
+    </div>
+    <div class="pane-actions">
+      <button class="btn" type="button" data-meeting-restore="{{ meeting.id }}"
+              title="Вернуть встречу в список вместе с её задачами">{{ icon('reply', 'ic-md') }} Восстановить</button>
+    </div>
+  </div>
+  <p class="hint-inline">Встреча скрыта из списка, её задачи закрыты. Файлы в архиве записей на месте.</p>
+</div>
+{% else %}
+<div class="pane-inner" data-meeting-id="{{ meeting.id }}">
+  <div class="pane-head">
+    <div class="pane-title">
+      <span class="chip info sm">{{ icon('mic', 'ic-sm') }}</span>
+      {{ meeting.title or "Без названия" }}
+    </div>
+    <div class="pane-sub">
+      <span>{{ meeting.started_at | local }}</span>
+      {% if meeting.duration_sec %}<span>{{ (meeting.duration_sec // 60) }} мин</span>{% endif %}
+      {% if meeting.source %}<span class="src-tag">{{ meeting.source }}</span>{% endif %}
+    </div>
+    {# The window is one space: a meeting that now lives elsewhere is shown, but said so,
+       with the way there. #}
+    {% if current_space_id and meeting.space_id != current_space_id %}
+    <div class="banner warn">
+      <span>Встреча теперь в пространстве «{{ space_name }}» — вместе с её задачами.</span>
+      <form method="post" action="/space/{{ meeting.space_id }}">
+        <input type="hidden" name="next" value="/meetings">
+        <button class="btn sm" type="submit">Открыть «{{ space_name }}»</button>
+      </form>
+    </div>
+    {% endif %}
+    <div class="pane-actions">
+      {% if (spaces | default([])) | length > 1 %}
+      <button class="btn" type="button" data-space-menu data-meeting="{{ meeting.id }}"
+              data-space="{{ meeting.space_id }}" data-spaces='{{ spaces_json }}'
+              title="Пространство встречи — переносится вместе с её задачами">
+        {{ icon('globe', 'ic-md') }} {{ space_name }} {{ icon('chevron', 'ic-sm') }}</button>
+      {% endif %}
+      <button class="btn danger" type="button" data-meeting-delete="{{ meeting.id }}"
+              title="Убрать встречу и закрыть её задачи; отменить можно из уведомления">
+        {{ icon('trash', 'ic-md') }} Удалить</button>
+    </div>
+  </div>
+
+  {% if meeting.route_note %}
+  <div class="banner warn">{{ meeting.route_note }}</div>
+  {% endif %}
+
+  <h3>Нити</h3>
+  <div class="chips-row">
+    {% for p in projects %}
+    <span class="proj-chip on">{{ p.name }}
+      <button class="chip-x" title="Убрать из нити"
+              hx-post="/meeting/{{ meeting.id }}/unassign" hx-vals='{"project_id": "{{ p.id }}"}'
+              hx-target="#pane" hx-swap="innerHTML">{{ icon('x', 'ic-sm') }}</button>
+    </span>
+    {% endfor %}
+    {% if not projects %}<span class="hint-inline">Пока ни одной.</span>{% endif %}
+    <button class="proj-chip" hx-post="/meeting/{{ meeting.id }}/thread-new"
+            hx-target="#pane" hx-swap="innerHTML"
+            title="Новая нить по теме встречи; встреча привязана рукой">{{ icon('thread', 'ic-sm') }} Новая нить</button>
+  </div>
+
+  {% if suggestions %}
+  <div class="reason-box">
+    <span class="reason-label">Похоже на нити</span>
+    {% for s in suggestions %}
+    <div class="sugg-row">
+      <span>{{ s.name }} — {{ (s.confidence * 100) | round | int }}%{% if s.reason %},
+        {{ s.reason }}{% endif %}</span>
+      <button class="btn sm success" hx-post="/meeting/{{ meeting.id }}/assign"
+              hx-vals='{"project_id": "{{ s.project_id }}"}'
+              hx-target="#pane" hx-swap="innerHTML">Подтвердить</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if candidates %}
+  <form class="compose-form" hx-post="/meeting/{{ meeting.id }}/assign"
+        hx-target="#pane" hx-swap="innerHTML">
+    <label>Отнести к нити
+      <select name="project_id">
+        {% for p in candidates %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="period-row"><button class="btn" type="submit">Добавить</button></div>
+  </form>
+  {% endif %}
+
+  {% if meeting.summary %}
+  <h3>Кратко</h3>
+  <div class="mt-sum">
+  {% for b in summary_blocks(meeting.summary) %}
+    {% if b.head and b.text and not b.points %}
+    <p><b>{{ b.head }}:</b> {{ b.text | join(' ') }}</p>
+    {% else %}
+    {% if b.head %}<h4>{{ b.head }}</h4>{% endif %}
+    {% for line in b.text %}<p>{{ line }}</p>{% endfor %}
+    {% if b.points %}<ul>{% for pt in b.points %}<li>{{ pt }}</li>{% endfor %}</ul>{% endif %}
+    {% endif %}
+  {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if items %}
+  <h3>Что прозвучало</h3>
+  {% import "_taskrow.html" as tr %}
+  {# The timecode stays in the reason here: this pane IS the transcript's home. A decision
+     or a fact has no lifecycle, so its row does not open the item pane — «Готово» there
+     would hide it for good. #}
+  <ul class="trows">
+    {% for it in items %}{{ tr.task_row(it, 'today', actions=False, draggable=False, full_reason=True,
+                                        link=(it.type in ACTIONABLE_TYPES)) }}{% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3>Расшифровка</h3>
+  {% if transcript %}
+  {# Скачивается ФАЙЛ из архива целиком; на экране он показан обрезанным. #}
+  <div class="period-row">
+    <a class="btn sm" href="/meeting/{{ meeting.id }}/download"
+       title="Сохранить полную расшифровку в файл">{{ icon('archive', 'ic-sm') }} Скачать .txt</a>
+  </div>
+  <div class="msg"><div class="msg-body">{% if hit %}{{ hit.before }}<mark class="tc-hit"
+    id="tc-hit">{{ hit.text }}</mark>{{ hit.after }}{% else %}{{ transcript }}{% endif %}</div></div>
+  {% else %}
+  <div class="banner warn">Файл расшифровки не найден. Проверьте, что архив записей лежит
+    там, где его оставило приложение-диктофон.</div>
+  {% endif %}
+
+  <h3>Файлы</h3>
+  <div class="chips-row">
+    {% if meeting.transcript_path %}<span class="proj-chip">{{ meeting.transcript_path }}</span>{% endif %}
+    {% if meeting.audio_path %}<span class="proj-chip {% if audio_path %}on{% endif %}">{{ meeting.audio_path }}</span>{% endif %}
+  </div>
+</div>
+{% endif %}

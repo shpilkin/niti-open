@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niti — Design System</title>
+<link rel="stylesheet" href="static/tokens.css">
+<link rel="stylesheet" href="static/app.css">
+<style>
+  /* Локальные стили только для самой витрины (не часть системы) */
+  body{padding:0;background:var(--bg)}
+  .sg{max-width:1000px;margin:0 auto;padding:var(--sp-6) var(--sp-5) var(--sp-7)}
+  .sg-hd{display:flex;align-items:baseline;gap:var(--sp-3);margin-bottom:var(--sp-2)}
+  .sg-hd h1{margin:0;font-size:var(--fs-2xl);font-weight:var(--fw-bold)}
+  .sg-hd .v{color:var(--muted);font-size:var(--fs-sm)}
+  .sg-lead{color:var(--subtle);font-size:var(--fs-base);margin:0 0 var(--sp-6);line-height:var(--lh-normal)}
+  .sg-sec{margin:var(--sp-7) 0 0}
+  .sg-sec > h2{font-size:var(--fs-xl);font-weight:var(--fw-semibold);margin:0 0 var(--sp-1);
+    padding-bottom:var(--sp-2);border-bottom:1px solid var(--border)}
+  .sg-sec > p{color:var(--muted);font-size:var(--fs-md);margin:var(--sp-2) 0 var(--sp-4)}
+  .sg-grp{margin:var(--sp-5) 0}
+  .sg-grp h3{font-size:var(--fs-md);font-weight:var(--fw-semibold);color:var(--subtle);
+    text-transform:uppercase;letter-spacing:.05em;margin:0 0 var(--sp-3)}
+  .sg-row{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center}
+
+  /* Свотчи цвета */
+  .sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-3)}
+  .sw{border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:var(--card)}
+  .sw-chip{height:56px}
+  .sw-meta{padding:var(--sp-2) var(--sp-3)}
+  .sw-name{font-size:var(--fs-sm);font-weight:var(--fw-semibold)}
+  .sw-var{font-size:var(--fs-xs);color:var(--muted);font-family:var(--font-mono)}
+
+  /* Пары семантики fg/bg */
+  .sem{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);
+    border-radius:var(--r-sm);font-size:var(--fs-md);font-weight:var(--fw-semibold)}
+
+  /* Спейсинг */
+  .sp-demo{display:flex;align-items:flex-end;gap:var(--sp-4)}
+  .sp-item{text-align:center}
+  .sp-box{background:var(--accent-weak);border:1px solid var(--accent);border-radius:var(--r-xs)}
+  .sp-lab{font-size:var(--fs-xs);color:var(--muted);font-family:var(--font-mono);margin-top:var(--sp-1)}
+
+  /* Радиусы */
+  .rad-box{width:72px;height:72px;background:var(--accent-weak);border:1px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);
+    color:var(--accent);font-family:var(--font-mono)}
+
+  /* Тени */
+  .sh-box{width:140px;height:72px;background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+    font-size:var(--fs-xs);color:var(--muted);font-family:var(--font-mono)}
+
+  .sg-note{font-size:var(--fs-sm);color:var(--muted);font-family:var(--font-mono);
+    background:var(--chip);padding:var(--sp-1) var(--sp-2);border-radius:var(--r-xs)}
+</style>
+</head>
+<body>
+<div class="sg">
+
+  <div class="sg-hd">
+    <h1><span class="logo">✦</span> Niti Design System</h1>
+    <span class="v">tokens.css + app.css · живая витрина</span>
+  </div>
+  <p class="sg-lead">Всё ниже отрисовано реальными классами из <code>static/app.css</code>
+    поверх токенов из <code>static/tokens.css</code>. Переключи системную тему —
+    страница подстроится сама (тёмная тема идёт из семантических токенов).</p>
+
+  <!-- ============ ЦВЕТ ============ -->
+  <section class="sg-sec">
+    <h2>Цвет</h2>
+    <p>Нейтральные поверхности/текст, бренд-акцент и семантика статусов.</p>
+
+    <div class="sg-grp">
+      <h3>Нейтральные</h3>
+      <div class="sw-grid">
+        <div class="sw"><div class="sw-chip" style="background:var(--bg)"></div><div class="sw-meta"><div class="sw-name">bg</div><div class="sw-var">--bg</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--sidebar)"></div><div class="sw-meta"><div class="sw-name">sidebar</div><div class="sw-var">--sidebar</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--card-hover)"></div><div class="sw-meta"><div class="sw-name">card-hover</div><div class="sw-var">--card-hover</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--chip)"></div><div class="sw-meta"><div class="sw-name">chip</div><div class="sw-var">--chip</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--border)"></div><div class="sw-meta"><div class="sw-name">border</div><div class="sw-var">--border</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--text)"></div><div class="sw-meta"><div class="sw-name">text</div><div class="sw-var">--text</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--subtle)"></div><div class="sw-meta"><div class="sw-name">subtle</div><div class="sw-var">--subtle</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--muted)"></div><div class="sw-meta"><div class="sw-name">muted</div><div class="sw-var">--muted</div></div></div>
+      </div>
+    </div>
+
+    <div class="sg-grp">
+      <h3>Акцент (бренд)</h3>
+      <div class="sw-grid">
+        <div class="sw"><div class="sw-chip" style="background:var(--accent)"></div><div class="sw-meta"><div class="sw-name">accent</div><div class="sw-var">--accent</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--accent-weak)"></div><div class="sw-meta"><div class="sw-name">accent-weak</div><div class="sw-var">--accent-weak</div></div></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--accent-strong)"></div><div class="sw-meta"><div class="sw-name">accent-strong</div><div class="sw-var">--accent-strong</div></div></div>
+      </div>
+    </div>
+
+    <div class="sg-grp">
+      <h3>Семантика статусов (fg на -bg)</h3>
+      <div class="sg-row">
+        <span class="sem" style="color:var(--success);background:var(--success-bg)">success</span>
+        <span class="sem" style="color:var(--warning);background:var(--warning-bg)">warning</span>
+        <span class="sem" style="color:var(--danger);background:var(--danger-bg)">danger</span>
+        <span class="sem" style="color:var(--delegated);background:var(--delegated-bg)">delegated</span>
+        <span class="sem" style="color:var(--info);background:var(--info-bg)">info</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ТИПОГРАФИКА ============ -->
+  <section class="sg-sec">
+    <h2>Типографика</h2>
+    <p>Шкала размеров и весов. Слева — токен.</p>
+    <div class="sg-grp">
+      <div style="display:flex;flex-direction:column;gap:var(--sp-3)">
+        <div><span class="sg-note">--fs-2xl / bold</span> <span style="font-size:var(--fs-2xl);font-weight:var(--fw-bold)">Крупный заголовок</span></div>
+        <div><span class="sg-note">--fs-xl / semibold</span> <span style="font-size:var(--fs-xl);font-weight:var(--fw-semibold)">Заголовок экрана</span></div>
+        <div><span class="sg-note">--fs-lg / medium</span> <span style="font-size:var(--fs-lg);font-weight:var(--fw-medium)">Заголовок карточки</span></div>
+        <div><span class="sg-note">--fs-base</span> <span style="font-size:var(--fs-base)">Базовый текст интерфейса — 14px</span></div>
+        <div><span class="sg-note">--fs-md</span> <span style="font-size:var(--fs-md)">Плотный текст списков — 13px</span></div>
+        <div><span class="sg-note">--fs-sm / muted</span> <span style="font-size:var(--fs-sm);color:var(--muted)">Вторичный текст, подписи — 12px</span></div>
+        <div><span class="sg-note">--fs-xs / caps</span> <span style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Мелкая метка</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ОТСТУПЫ ============ -->
+  <section class="sg-sec">
+    <h2>Отступы</h2>
+    <p>Шкала с шагом 4px. Для padding / gap / margin.</p>
+    <div class="sp-demo">
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-1);height:var(--sp-1)"></div><div class="sp-lab">sp-1</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-2);height:var(--sp-2)"></div><div class="sp-lab">sp-2</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-3);height:var(--sp-3)"></div><div class="sp-lab">sp-3</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-4);height:var(--sp-4)"></div><div class="sp-lab">sp-4</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-5);height:var(--sp-5)"></div><div class="sp-lab">sp-5</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-6);height:var(--sp-6)"></div><div class="sp-lab">sp-6</div></div>
+      <div class="sp-item"><div class="sp-box" style="width:var(--sp-7);height:var(--sp-7)"></div><div class="sp-lab">sp-7</div></div>
+    </div>
+  </section>
+
+  <!-- ============ РАДИУСЫ + ТЕНИ ============ -->
+  <section class="sg-sec">
+    <h2>Радиусы и тени</h2>
+    <div class="sg-grp">
+      <h3>Радиусы</h3>
+      <div class="sg-row">
+        <div class="rad-box" style="border-radius:var(--r-xs)">r-xs</div>
+        <div class="rad-box" style="border-radius:var(--r-sm)">r-sm</div>
+        <div class="rad-box" style="border-radius:var(--r)">r</div>
+        <div class="rad-box" style="border-radius:var(--r-pill)">pill</div>
+      </div>
+    </div>
+    <div class="sg-grp">
+      <h3>Тени</h3>
+      <div class="sg-row">
+        <div class="sh-box" style="box-shadow:var(--shadow)">--shadow</div>
+        <div class="sh-box" style="box-shadow:var(--shadow-pop)">--shadow-pop</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ КНОПКИ ============ -->
+  <section class="sg-sec">
+    <h2>Кнопки</h2>
+    <p>Классы из app.css: <code>.btn</code> и модификаторы, <code>.icon-btn</code>, <code>.back-link</code>.</p>
+    <div class="sg-grp">
+      <div class="sg-row">
+        <button class="btn">Обычная</button>
+        <button class="btn primary">Primary</button>
+        <button class="btn success">Success</button>
+        <button class="btn sm">Small</button>
+        <button class="btn danger">Danger</button>
+        <button class="btn" disabled>Disabled</button>
+        <button class="icon-btn">☰</button>
+        <button class="back-link">← Назад</button>
+      </div>
+      <p><code>.ic-spin</code> — иконка крутится, пока htmx ждёт ответ. Здесь класс
+        <code>.htmx-request</code> проставлен вручную, в жизни его вешает сам htmx.</p>
+      <div class="sg-row">
+        <button class="attach-act" title="Проверить, не приехали ли файлы"><svg class="ic ic-sm ic-spin" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 11-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg></button>
+        <button class="attach-act htmx-request" title="Во время запроса"><svg class="ic ic-sm ic-spin" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 11-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg></button>
+      </div>
+      <p>Панель обязательства — две полосы <code>.pane-bars</code>: жизненный цикл (один зелёный
+        primary, остальное за меню) и почта (черновик + сцепленная группа <code>.seg</code>).</p>
+      <div class="pane-bars" style="max-width:420px">
+        <div class="pane-actions">
+          <button class="btn success"><svg class="ic ic-md" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg> Готово</button>
+          <button class="btn"><svg class="ic ic-md" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Отложить <svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></button>
+          <button class="btn"><svg class="ic ic-md" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg> завтра <svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></button>
+          <button class="btn icon" title="Ещё"><svg class="ic ic-md" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></button>
+        </div>
+        <div class="pane-actions">
+          <button class="btn primary"><svg class="ic ic-md" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg> Черновик ответа</button>
+          <span class="seg"><button class="btn">Ответить</button><button class="btn">Всем</button><button class="btn">Переслать</button></span>
+        </div>
+      </div>
+    </div>
+    <div class="sg-grp">
+      <h3>История карточки <code>.hist</code></h3>
+      <p>Тихий блок в панели: свёрнут, читают по надобности. Роль <code>.drop</code>
+        приглушена — снятие карточки с доски не должно читаться как исполненное
+        обязательство (docs/ux-tasks.md §17.3).</p>
+      <details class="hist" open style="max-width:460px">
+        <summary>⏱ История</summary>
+        <ol class="hist-list">
+          <li class="hist-row auto"><span class="hist-when">05.09.2026</span>
+            <span class="hist-what">Жду ответа → Нужен ответ: пришло подтверждение и новый вопрос</span></li>
+          <li class="hist-row drop"><span class="hist-when">08.09.2026</span>
+            <span class="hist-what">Снята с доски: ассистент перестал находить это в треде</span></li>
+          <li class="hist-row user"><span class="hist-when">11.09.2026</span>
+            <span class="hist-what">Готово, вручную</span></li>
+        </ol>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ ДОСКИ В НАСТРОЙКАХ ============ -->
+  <section class="sg-sec">
+    <h2>Скопировать и строчные формы</h2>
+    <p>Всё, что человек копирует руками — токен, адрес, готовая команда, — показываем
+      через макрос <code>copy_value</code>: значение и кнопка «два квадрата» справа.
+      По клику значение уходит в буфер, кнопка на секунду показывает галочку
+      (<code>.copied</code>, вторая строка ниже — это состояние).</p>
+    <div class="sg-grp" style="max-width:560px">
+      <div class="field-row">
+        <span class="field-label">Адрес</span>
+        <div class="copy-line">
+          <code class="mono-block sm">http://127.0.0.1:8765/mcp</code>
+          <button class="act copy" type="button" title="Скопировать адрес">
+            <span class="copy-ic"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V5"/></svg></span><span class="copy-ok"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+          </button>
+        </div>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Только что скопировали</span>
+        <div class="copy-line">
+          <code class="mono-block sm">Authorization: Bearer 0000000000000000000000000000000000000000000</code>
+          <button class="act copy copied" type="button" title="Скопировано">
+            <span class="copy-ic"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V5"/></svg></span><span class="copy-ok"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+          </button>
+        </div>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Многострочный кусок конфигурации — <code>.mono-block.block</code></span>
+        <div class="copy-line">
+          <code class="mono-block sm block">{
+  "mcpServers": {
+    "niti": { "type": "http", "url": "http://127.0.0.1:8765/mcp" }
+  }
+}</code>
+          <button class="act copy" type="button" title="Скопировать конфигурацию">
+            <span class="copy-ic"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V5"/></svg></span><span class="copy-ok"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="sg-grp" style="max-width:560px">
+      <h3>Строка формы <code>.inline-form</code></h3>
+      <p>Поле, список и кнопка — одного роста (<code>--control-h</code>). Разная высота
+        читается как «кнопка провалилась в поле».</p>
+      <form class="inline-form" onsubmit="return false">
+        <input type="text" name="pattern" placeholder="ivan@acme.ru или acme.ru">
+        <select><option>адрес</option><option>домен</option></select>
+        <button class="btn sm primary" type="submit">Добавить правило</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="sg-sec">
+    <h2>Календарь</h2>
+    <p>Классы <code>.cal*</code>, шаблоны <code>_calendar.html</code> и соседние. Шапка как в
+      Календаре macOS: месяц крупно, по центру вид, справа «‹ Сегодня ›», под ней календари
+      ящиков. Положение блока задаёт сервер (<code>--top/--h/--left/--w</code>), цвет календаря —
+      <code>--ev/--ev-bg</code> из палитры <code>--cal-1…6</code>. Здесь <code>--cal-hour-h</code>
+      уменьшен, чтобы сутки влезли в витрину.</p>
+    <div class="cal cal-week" style="--cal-hour-h:22px;--cal-days:minmax(0,1fr) minmax(0,1fr) minmax(0,.4fr);max-width:640px">
+      <div class="cal-top">
+        <div class="cal-bar">
+          <details class="cal-pick"><summary class="cal-title">Сентябрь 2026 <svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></summary></details>
+          <span class="seg cal-views"><button class="btn sm" type="button">День</button><button class="btn sm on" type="button">Неделя</button><button class="btn sm" type="button">Месяц</button></span>
+          <span class="cal-nav"><button class="btn sm icon" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5L9 12l5.5 5.5"/></svg></button><button class="btn sm" type="button">Сегодня</button><button class="btn sm icon" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6.5L15 12l-5.5 5.5"/></svg></button></span>
+        </div>
+        <div class="cal-sources">
+          <button class="proj-chip on" type="button" style="--ev:var(--cal-1)"><span class="cal-dot"></span>work</button>
+          <button class="proj-chip on" type="button" style="--ev:var(--cal-2)"><span class="cal-dot"></span>Yandex</button>
+          <button class="proj-chip" type="button" style="--ev:var(--cal-3)"><span class="cal-dot"></span>Gmail</button>
+        </div>
+        <div class="cal-head">
+          <div class="cal-gutter"></div>
+          <div class="cal-dayname">Пн <b>21</b></div>
+          <div class="cal-dayname today">Вт <b>22</b></div>
+          <div class="cal-dayname">Сб <b>26</b></div>
+        </div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-hours"><div class="cal-hour"></div><div class="cal-hour"><span>01:00</span></div><div class="cal-hour"><span>02:00</span></div><div class="cal-hour"><span>03:00</span></div><div class="cal-hour"><span>04:00</span></div><div class="cal-hour"><span>05:00</span></div><div class="cal-hour"><span>06:00</span></div><div class="cal-hour"><span>07:00</span></div><div class="cal-hour"><span>08:00</span></div><div class="cal-hour"><span>09:00</span></div><div class="cal-hour"><span>10:00</span></div><div class="cal-hour"><span>11:00</span></div><div class="cal-hour"><span>12:00</span></div><div class="cal-hour"><span>13:00</span></div><div class="cal-hour"><span>14:00</span></div><div class="cal-hour"><span>15:00</span></div><div class="cal-hour"><span>16:00</span></div><div class="cal-hour"><span>17:00</span></div><div class="cal-hour"><span>18:00</span></div><div class="cal-hour"><span>19:00</span></div><div class="cal-hour"><span>20:00</span></div><div class="cal-hour"><span>21:00</span></div><div class="cal-hour"><span>22:00</span></div><div class="cal-hour"><span>23:00</span></div><span class="cal-now-label" style="--top:62%">14:52</span></div>
+        <div class="cal-day"><button class="cal-ev past" type="button" style="--top:37.500%;--h:4.167%;--left:0%;--w:100%;--ev:var(--cal-1);--ev-bg:var(--cal-1-bg)"><span class="cal-ev-body"><span class="cal-ev-time">09:00</span><span class="cal-ev-title">Планёрка</span></span></button><button class="cal-ev " type="button" style="--top:45.833%;--h:6.250%;--left:0%;--w:50%;--lines:3;--lines-alone:3;--ev:var(--cal-1);--ev-bg:var(--cal-1-bg)"><span class="cal-ev-body"><span class="cal-ev-time">11:00</span><span class="cal-ev-title">Смета по тендеру</span><span class="cal-ev-loc">Переговорная 5</span></span></button><button class="cal-ev " type="button" style="--top:47.917%;--h:4.167%;--left:50%;--w:50%;--ev:var(--cal-2);--ev-bg:var(--cal-2-bg)"><span class="cal-ev-body"><span class="cal-ev-time">11:30</span><span class="cal-ev-title">Звонок с подрядчиком</span></span></button><button class="cal-ev short" type="button" style="--top:58.333%;--h:2.083%;--left:0%;--w:100%;--ev:var(--cal-2);--ev-bg:var(--cal-2-bg)"><span class="cal-ev-body"><span class="cal-ev-time">14:00</span><span class="cal-ev-title">Короткий созвон</span></span></button></div>
+        <div class="cal-day today"><button class="cal-ev cancelled" type="button" style="--top:41.667%;--h:4.167%;--left:0%;--w:100%;--ev:var(--cal-1);--ev-bg:var(--cal-1-bg)"><span class="cal-ev-body"><span class="cal-ev-time">10:00</span><span class="cal-ev-title">Отменили</span></span></button><button class="cal-ev sel" type="button" style="--top:54.167%;--h:8.333%;--left:0%;--w:100%;--lines:4;--lines-alone:5;--ev:var(--cal-3);--ev-bg:var(--cal-3-bg)"><span class="cal-ev-body"><span class="cal-ev-time">13:00</span><span class="cal-ev-title">Демо Альфа</span></span></button><div class="cal-now" style="--top:62%"></div></div>
+        <div class="cal-day weekend"></div>
+      </div>
+    </div>
+    <div class="sg-grp" style="max-width:640px">
+      <h3>Месяц <code>.cal-month</code></h3>
+      <div class="cal cal-month">
+        <div class="cal-mhead"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+        <div class="cal-month"><div class="cal-mweek">
+          <div class="cal-mday out"><button class="cal-mnum" type="button">31</button></div>
+          <div class="cal-mday today"><button class="cal-mnum" type="button">1</button><button class="cal-mline " type="button" style="--ev:var(--cal-1)"><span class="cal-dot"></span><span class="cal-mtime">09:30</span><span class="cal-mtitle">AI. Статус</span></button><button class="cal-mline " type="button" style="--ev:var(--cal-2)"><span class="cal-dot"></span><span class="cal-mtime">11:00</span><span class="cal-mtitle">Альфа</span></button><button class="cal-mline " type="button" style="--ev:var(--cal-1)"><span class="cal-dot"></span><span class="cal-mtime">13:00</span><span class="cal-mtitle">резерв</span></button><button class="cal-more" type="button">ещё 2</button></div>
+          <div class="cal-mday"><button class="cal-mnum" type="button">2</button><button class="cal-mline cancelled" type="button" style="--ev:var(--cal-3)"><span class="cal-dot"></span><span class="cal-mtime">10:00</span><span class="cal-mtitle">Синк</span></button></div>
+          <div class="cal-mday"><button class="cal-mnum" type="button">3</button></div>
+          <div class="cal-mday"><button class="cal-mnum" type="button">4</button></div>
+          <div class="cal-mday weekend"><button class="cal-mnum" type="button">5</button></div>
+          <div class="cal-mday weekend"><button class="cal-mnum" type="button">6</button></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-sec">
+    <h2>Настройки → Доски</h2>
+    <p>Карточка доски (docs/ux-tasks.md §17.5): имя и видимость в шапке, типы и порядок
+      ниже, действие справа. Пресет вместо типов показывает замок.</p>
+    <ul class="board-list" style="max-width:620px">
+      <li class="board-row">
+        <div class="board-form">
+          <div class="board-head">
+            <span class="board-ic">⏱</span>
+            <input class="board-name" value="Жду ответа">
+            <label class="board-chk"><input type="checkbox"> скрыть</label>
+            <button class="btn sm primary" type="button">Сохранить</button>
+          </div>
+          <div class="board-note">🔒 Встроенная доска: у неё свои секции и порядок строк.</div>
+        </div>
+        <div class="board-acts"><button class="btn sm" type="button">Скопировать как свою</button></div>
+      </li>
+      <li class="board-row off">
+        <div class="board-form">
+          <div class="board-head">
+            <span class="board-ic">✓</span>
+            <input class="board-name" value="Жду от подрядчиков">
+            <label class="board-chk"><input type="checkbox" checked> скрыть</label>
+            <button class="btn sm primary" type="button">Сохранить</button>
+          </div>
+          <div class="board-body">
+            <div class="board-types">
+              <label class="board-chk"><input type="checkbox" checked> Делегировано</label>
+              <label class="board-chk"><input type="checkbox"> Моё обещание</label>
+            </div>
+            <div class="board-opts">
+              <label class="board-sel">Условие <select><option>без условия</option></select></label>
+              <label class="board-sel">Порядок <select><option>новые сверху</option></select></label>
+            </div>
+          </div>
+        </div>
+        <div class="board-acts"><button class="btn sm danger" type="button">Удалить</button></div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============ ПЛАШКИ / ЧИПЫ ============ -->
+  <section class="sg-sec">
+    <h2>Плашки, чипы, теги</h2>
+    <div class="sg-grp">
+      <h3>Chip-аватары (статусы)</h3>
+      <div class="sg-row">
+        <span class="chip waiting">⏳</span>
+        <span class="chip needreply">↩</span>
+        <span class="chip commitment">✓</span>
+        <span class="chip delegated">→</span>
+        <span class="chip info">i</span>
+      </div>
+    </div>
+    <div class="sg-grp">
+      <h3>Пилюли статуса аккаунта</h3>
+      <div class="sg-row">
+        <span class="st-pill">нейтрально</span>
+        <span class="st-pill ok">подключено</span>
+        <span class="st-pill err">ошибка</span>
+        <span class="st-pill paused">пауза</span>
+        <span class="st-pill high">Важность: высокая</span>
+        <span class="st-pill medium">Важность: средняя</span>
+        <span class="st-pill low">Важность: низкая</span>
+      </div>
+    </div>
+    <div class="sg-grp">
+      <h3>Бейджи и теги</h3>
+      <div class="sg-row">
+        <span class="badge">12</span>
+        <span class="badge-type">тип</span>
+        <span class="src-tag">📥 источник</span>
+        <a class="src-tag" href="#">🎙 источник-ссылка</a>
+        <span class="soon-badge">скоро</span>
+        <span class="export-ok">✓ Сохранено</span>
+        <span class="export-err">Нужен абсолютный путь</span>
+        <a class="lbl-chip" style="color:var(--accent);border-color:var(--accent)"><span class="lbl-dot" style="background:var(--accent)"></span>ярлык</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ СТРОКИ ЗАДАЧ ============ -->
+  <section class="sg-sec">
+    <h2>Строки задач</h2>
+    <p>Класс <code>.trow</code> в списке <code>.trows</code>, заголовок секции — <code>.tsec</code>.
+      Тип — иконка в семантическом цвете, контрагент — фиксированная колонка, справа дата или
+      возраст ожидания; наведи курсор — дата сменится на действия. Разметка — макрос
+      <code>task_row</code> в <code>templates/_taskrow.html</code>.</p>
+    <div class="tools" style="max-width:760px;position:static"><div class="tools-main"><label class="tools-dd"><span class="tools-lbl">Группировать:</span><select><option>срок</option><option>человек</option><option>проект</option><option>источник</option></select><span class="tools-chev"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></span></label><label class="tools-dd"><span class="tools-lbl">Ящик:</span><select><option>все ящики</option><option>Работа</option></select><span class="tools-chev"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></span></label><button class="tools-add" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg> Задача <kbd class="qadd-key">n</kbd></button></div></div>
+    <div class="tools selecting" style="max-width:760px;position:static;margin-top:var(--sp-2)"><div class="tools-sel"><span class="tools-count"><b>2</b> выбрано <button class="act" type="button" title="Снять выделение (Esc)"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button></span><button class="tools-act" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg> <span>Готово</span></button><button class="tools-act" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> <span>Отложить 3д</span></button><button class="tools-act" type="button"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg> <span>Не обязательство</span></button><label class="tools-dd"><select><option>Тип…</option></select><span class="tools-chev"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></span></label></div></div>
+    <form class="qadd" style="max-width:760px;margin-top:var(--sp-2)" onsubmit="return false"><span class="qadd-ic"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span><input class="qadd-input" placeholder="Новая задача… «позвонить Пете до пятницы»"><button class="qadd-due set" type="button" title="Срок задачи"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg><span class="qadd-due-lbl">сегодня</span></button><kbd class="qadd-key">n</kbd></form>
+    <ul class="trows" style="max-width:760px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+      <li class="tsec">Просрочено <span class="tsec-n">1</span></li>
+      <li class="trow overdue attn">
+        <span class="trow-ic commitment" title="Моё обещание"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+        <span class="trow-who">Мария Смирнова</span>
+        <span class="trow-title">Отправить отчёт</span><span class="trow-reason">обещал до пятницы</span><span class="trow-break"></span>
+        <span class="trow-src" title="Ящик: Работа"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg></span>
+        <span class="trow-end"><span class="trow-date over">просрочено</span>
+          <span class="actions"><button class="act ok" title="Готово"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button><button class="act" title="Отложить"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></button><button class="act" title="Не обязательство"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button></span></span>
+      </li>
+      <li class="tsec">Сегодня <span class="tsec-n">2</span></li>
+      <li class="trow attn sel">
+        <span class="trow-ic needreply" title="Нужен ответ"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg></span>
+        <span class="trow-who">Иван Петров</span>
+        <span class="trow-title">Нужен ответ по договору аренды</span><span class="trow-reason">ждёт вашего решения</span><span class="trow-break"></span>
+        <span class="trow-end"><span class="trow-date today">сегодня</span></span>
+      </li>
+      <li class="trow flash">
+        <span class="trow-ic task" title="Задача"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+        <span class="trow-who">Борис Ларин</span>
+        <span class="trow-title">Сверить доступы к API</span>
+        <span class="trow-lbls"><span class="lbl-chip mini" title="Метка: БЛ" style="background:#5e30eb22;color:#5e30eb;border-color:#5e30eb55"><span class="lbl-dot" style="background:#5e30eb"></span>БЛ</span></span>
+        <span class="trow-break"></span>
+        <span class="trow-end"><span class="trow-date">завтра</span></span>
+      </li>
+      <li class="trow">
+        <span class="trow-ic delegated" title="Делегировано"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 8l4.5 4.5-4.5 4.5"/><path d="M19 12.5h-9A5.5 5.5 0 004.5 18V19"/></svg></span>
+        <span class="trow-who">Пётр Сидоров</span>
+        <span class="trow-title">Прислать смету</span><span class="trow-break"></span>
+        <span class="trow-src" title="Встреча: Планёрка"><svg class="ic ic-sm" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0013 0"/><path d="M12 17.5V21M8.5 21h7"/></svg></span>
+        <span class="trow-end"><span class="trow-date">висит 12д</span></span>
+      </li>
+    </ul>
+
+    <h3 style="margin-top:var(--sp-5)">Меню и выбор даты</h3>
+    <p>Меню строки и панели — <code>.ctx-menu</code>/<code>.ctx-item</code>
+      (<code>openContextMenu</code> в <code>ui.js</code>). «Выбрать дату…» открывает тот же
+      поповер с настоящим полем даты (<code>.ctx-date</code>): календарь рисует браузер.
+      Невидимого поля с <code>showPicker()</code> тут быть не должно — когда он молчит,
+      для пользователя не происходит ничего.</p>
+    <div style="display:flex;gap:var(--sp-5);align-items:flex-start;flex-wrap:wrap">
+      <div class="ctx-menu" style="position:static">
+        <div class="ctx-item">Сегодня</div>
+        <div class="ctx-item">Завтра</div>
+        <div class="ctx-item">В понедельник</div>
+        <div class="ctx-item">Выбрать дату…</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item">Без срока</div>
+      </div>
+      <div class="ctx-menu ctx-date" style="position:static">
+        <input class="ctx-date-input" type="date" value="2026-09-18">
+        <button class="btn primary" type="button">Готово</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ПОЧТОВЫЙ СПИСОК ============ -->
+  <section class="sg-sec">
+    <h2>Почтовый список (стиль macOS Mail)</h2>
+    <ul class="mlist" style="max-width:520px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+      <li class="mrow unread">
+        <span class="mrow-unread-dot"></span>
+        <div class="mrow-top"><span class="mrow-from">Банк</span><span class="mrow-time">9:41</span></div>
+        <div class="mrow-subj">Выписка по счёту за июнь</div>
+        <div class="mrow-prev">Уважаемый клиент, во вложении выписка по вашему счёту за отчётный период…</div>
+      </li>
+      <li class="mrow sel">
+        <div class="mrow-top"><span class="mrow-from">Мария Смирнова <span class="mrow-clip">📎</span></span><span class="mrow-time">вчера</span></div>
+        <div class="mrow-subj">Re: правки по макету</div>
+        <div class="mrow-prev">Посмотрела, в целом ок. Пара мелочей на второй странице, скинула комментарии…</div>
+      </li>
+      <li class="mrow muted">
+        <div class="mrow-top"><span class="mrow-from">Рассылка Хабр</span><span class="mrow-time">пн</span></div>
+        <div class="mrow-subj">Лучшее за неделю</div>
+        <div class="mrow-prev">Дайджест самых обсуждаемых статей…</div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============ ЛЮДИ ============ -->
+  <section class="sg-sec">
+    <h2>Люди (docs/feature-people.md)</h2>
+    <p>Строка человека <code>.prow</code>: чекбокс выбора (объединение), имя с отметкой
+      заметок, дата последней активности, чипы личностей <code>.idchip</code>. Чип,
+      повторяющий имя строки, не рисуется; у профиля без почты — метка «только имя».</p>
+    <ul class="mlist" style="max-width:520px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+      <li class="mrow prow">
+        <label class="trow-chk prow-chk"><input type="checkbox" class="trow-check prow-check"></label>
+        <div class="prow-body">
+          <div class="mrow-top"><span class="mrow-from">И. Иванов</span><span class="mrow-time">05.09.2026</span></div>
+          <div class="prow-ids">
+            <span class="idchip">✉ ivanov@krab.ru</span>
+            <span class="idchip name">Иванов</span>
+            <span class="idchip src">со встреч</span>
+            <span class="idchip open">2 открытых</span>
+          </div>
+        </div>
+      </li>
+      <li class="mrow prow">
+        <label class="trow-chk prow-chk"><input type="checkbox" class="trow-check prow-check" checked></label>
+        <div class="prow-body">
+          <div class="mrow-top"><span class="mrow-from">Анна Соколова</span><span class="mrow-time">04.09.2026</span></div>
+          <div class="prow-ids">
+            <span class="idchip name">только имя</span>
+            <span class="idchip warn">адреса нет</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============ БАННЕРЫ / ОБРАТНАЯ СВЯЗЬ ============ -->
+  <section class="sg-sec">
+    <h2>Поиск (docs/feature-search-mcp-agent.md)</h2>
+    <div class="search-chips">
+      <button class="proj-chip on" type="button">Письма</button>
+      <button class="proj-chip" type="button">Обязательства</button>
+      <button class="proj-chip" type="button">Встречи</button>
+    </div>
+    <div class="tsec">Письма <span class="tsec-n">2</span></div>
+    <ul class="srows">
+      <li class="srow sel">
+        <span class="chip sm info">✉</span>
+        <div class="srow-main">
+          <div class="srow-top">
+            <span class="srow-title"><mark>Смета</mark> на тендер</span>
+            <span class="srow-date">05.09.2026</span>
+          </div>
+          <div class="srow-who">Пётр Петров</div>
+          <div class="srow-snip">Прошу согласовать <mark>смету</mark> до пятницы.</div>
+        </div>
+      </li>
+      <li class="srow">
+        <span class="chip sm commitment">✓</span>
+        <div class="srow-main">
+          <div class="srow-top">
+            <span class="srow-title">Ответить по <mark>смете</mark></span>
+            <span class="srow-date">04.09.2026</span>
+          </div>
+          <div class="srow-who">Пётр Петров</div>
+        </div>
+      </li>
+    </ul>
+    <p class="hint">Палитра ⌘K — те же строки в оверлее:
+      <kbd>↑</kbd><kbd>↓</kbd> выбрать · <kbd>Enter</kbd> открыть · <kbd>Esc</kbd> закрыть</p>
+  </section>
+
+  <section class="sg-sec">
+    <h2>Баннеры и обратная связь</h2>
+    <div class="sg-grp" style="max-width:640px">
+      <div class="banner ok">✓ Изменения сохранены</div>
+      <div class="banner warn"><span>Требуется переподключение аккаунта</span><a href="#">Подключить</a></div>
+      <div class="reason-box"><span class="reason-label">Почему это здесь</span>Письмо помечено как требующее ответа: содержит прямой вопрос к вам.</div>
+      <div class="reason-box"><span class="reason-label">Похоже на проекты</span><div class="sugg-row"><span>Крабы — 65%, обсуждение сроков</span><button class="btn sm success">Подтвердить</button></div></div>
+      <div class="reason-box advice"><span class="reason-label">Что делать <span class="hint-inline">· 13.09 17:40</span><button class="act" type="button" title="Пересчитать">↻</button></span>
+        <div class="adv-lead"><b>Ответить</b> — он ждёт смету, а ты ему уже должен план <a class="ev" href="#" title="карточка «Прислать план»">Прислать план</a></div>
+        <div class="adv-sit">Два письма без ответа с 10.09 <a class="ev" href="#" title="Петров, письмо от 10.09.2026">Петров, 10.09</a></div>
+        <div class="adv-sit">По проекту решено идти через API v2 <a class="ev" href="#" title="решение: Идём через API v2">решение 02.09</a></div>
+        <div class="adv-points">В ответе:<ul><li>сроки по API <a class="ev" href="#" title="Петров, письмо от 10.09.2026">Петров, 10.09</a></li><li>кто со стороны Ромашки ведёт интеграцию</li></ul></div>
+        <div class="adv-risk">срок 20.09, ждут трое <a class="ev" href="#" title="карточка «Согласовать бюджет»">Согласовать бюджет</a></div>
+      </div>
+      <div class="tr ok"><div class="tr-head">Подключение успешно</div>Проверено 3 папки, найдено 128 писем.</div>
+      <div class="tr err"><div class="tr-head">Ошибка авторизации</div>Проверьте логин и пароль приложения.</div>
+    </div>
+  </section>
+
+  <!-- ============ ФОРМЫ ============ -->
+  <section class="sg-sec">
+    <h2>Формы</h2>
+    <p>Инпуты внутри <code>.compose-form</code> / <code>.wz-form</code> наследуют стиль. Фокус → акцент.</p>
+    <form class="compose-form" style="max-width:520px" onsubmit="return false">
+      <label>Кому<input type="text" placeholder="name@example.com"></label>
+      <label>Тема<input type="text" placeholder="Тема письма"></label>
+      <label>Сообщение<textarea rows="3" placeholder="Текст…"></textarea></label>
+      <label class="check-row"><input type="checkbox" checked> Учитывать встречи</label>
+      <div class="sg-row">
+        <span class="proj-chip on">Проект A <button class="chip-x">✕</button></span>
+        <span class="proj-chip">Проект B</span>
+        <span class="src-chip on">Входящие</span>
+        <span class="src-chip">Отправленные</span>
+      </div>
+      <div class="sg-row"><button class="btn primary">Отправить</button><button class="btn">Отмена</button></div>
+    </form>
+  </section>
+
+  <!-- ============ ТАБЫ / ПУСТЫЕ СОСТОЯНИЯ ============ -->
+  <section class="sg-sec">
+    <h2>Табы и пустые состояния</h2>
+    <div class="settings-tabs" style="max-width:640px">
+      <a class="tab active">Аккаунты</a>
+      <a class="tab">ИИ</a>
+      <a class="tab">Общие</a>
+      <a class="tab soon">Правила <span class="soon-badge">скоро</span></a>
+    </div>
+    <div class="empty" style="border:1px solid var(--border);border-radius:var(--r-sm);margin-top:var(--sp-4)">
+      <div class="empty-ic">✦</div>
+      <div class="empty-title">Здесь пока пусто</div>
+      <div class="empty-sub">Письма появятся после первой синхронизации.</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

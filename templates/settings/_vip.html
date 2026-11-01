@@ -1,0 +1,25 @@
+<div id="vip-section">
+  <h3>VIP / важные</h3>
+  <p class="sec-sub">Адреса и домены важных людей (руководство, ключевые клиенты). Если такой
+    человек — участник встречи, Niti предложит к ней подготовиться (доска «К подготовке»).
+    Один адрес или домен в строке.</p>
+  <form hx-post="/settings/vip" hx-target="#vip-status" hx-swap="innerHTML">
+    <textarea class="prompt-text" name="body" rows="6" spellcheck="false"
+              placeholder="{{ vip_placeholder }}">{{ vip_text }}</textarea>
+    <div class="prompt-actions">
+      <button class="btn primary" type="submit">Сохранить</button>
+      <span class="prompt-status" id="vip-status"></span>
+    </div>
+  </form>
+  {% if vip_suggestions %}
+  <p class="sec-sub">Часто пишут вам — добавить в VIP?</p>
+  <div class="chips-row">
+    {% for sgn in vip_suggestions %}
+    <button class="btn sm" hx-post="/settings/vip/add" hx-vals='{"email": "{{ sgn.email }}"}'
+            hx-target="#vip-section" hx-swap="outerHTML"
+            title="{{ sgn.count }} писем от {{ sgn.email }}">
+      ＋ {{ sgn.name or sgn.email }}</button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

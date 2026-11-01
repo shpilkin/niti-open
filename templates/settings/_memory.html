@@ -1,0 +1,90 @@
+{# Память пространства под редактором: запомненные и подтверждённые строки, захват из
+   моих писем и встреч (выключатель, кнопки, предложения с цитатой и источником, «да»/«нет»),
+   «устарело?». Один блок — каждое действие возвращает его целиком, чтобы списки не
+   расходились. Предложение — ещё не память: в промпт оно не попадает, пока я не сказал «да». #}
+<div id="memory-{{ space.id }}">
+  {% with remembered=memory.remembered %}{% include "settings/_remembered.html" %}{% endwith %}
+  {% set c = memory.capture %}
+
+  <p class="hint">Захват из писем и встреч:
+    {% if c.on %}<b>включён</b> — ассистент читает мои исходящие письма и расшифровки встреч
+      этого пространства и предлагает, что запомнить; в память попадает только то, что я
+      подтвердил.{% if c.since %} Разобрано по {{ c.since | local("%d.%m.%Y %H:%M") }}.{% endif %}
+    {% else %}<b>выключен</b> — модель не читает письма и встречи ради памяти, пока я не
+      включу. Включение считает с момента включения, что было раньше — не читается;
+      архив — отдельной кнопкой.{% endif %}
+    {% if not c.model %} Модель для пространства не настроена (раздел «AI / извлечение») —
+      разбирать нечем.{% endif %}
+  </p>
+  <div class="pane-actions">
+    <form hx-post="/settings/profile/{{ space.id }}/capture"
+          hx-target="#memory-{{ space.id }}" hx-swap="outerHTML">
+      <input type="hidden" name="action" value="{{ 'off' if c.on else 'on' }}">
+      <button class="btn sm" type="submit">{{ 'Выключить захват' if c.on else 'Включить захват' }}</button>
+    </form>
+    {% if c.on %}
+    <form hx-post="/settings/profile/{{ space.id }}/capture"
+          hx-target="#memory-{{ space.id }}" hx-swap="outerHTML">
+      <input type="hidden" name="action" value="now">
+      <button class="btn sm" type="submit"{% if c.queued or not c.model %} disabled{% endif %}>
+        {{ icon('refresh', 'ic-sm') }} Разобрать новое{% if c.pending_calls %} (~{{ c.pending_calls }} вызов. модели){% endif %}
+      </button>
+    </form>
+    <form hx-post="/settings/profile/{{ space.id }}/capture"
+          hx-target="#memory-{{ space.id }}" hx-swap="outerHTML"
+          hx-confirm="Разобрать письма и встречи за {{ c.backfill_days }} дней? Это около {{ c.backfill_calls }} вызовов модели за мой счёт.">
+      <input type="hidden" name="action" value="backfill">
+      <button class="btn sm" type="submit"{% if c.queued or not c.model %} disabled{% endif %}>
+        Архив за {{ c.backfill_days }} дней (~{{ c.backfill_calls }} вызов.)
+      </button>
+    </form>
+    {% endif %}
+    {% if c.queued %}<span class="hint-inline">разбор в очереди — обновите страницу через минуту</span>{% endif %}
+  </div>
+
+  {% if memory.proposals %}
+  <div class="reason-box">
+    <span class="reason-label">{{ icon('star', 'ic-sm') }} Предлагаю запомнить</span>
+    {% for p in memory.proposals %}
+    <div class="sugg-row">
+      <div>
+        <div><b>{{ p.kind_label }}</b>{% if p.about %} · о {{ p.about }}{% if p.new_person %}
+          <span class="hint-inline">(нет в адресной книге — появится после «да»)</span>{% endif %}{% endif %}:
+          {{ p.fact.text }}</div>
+        <div class="hint-inline">«{{ p.fact.quote }}»{% if p.url %} —
+          <a href="#" hx-get="{{ p.url }}" hx-target="#pane" hx-swap="innerHTML">{{ p.source_label }}</a>{% endif %}</div>
+      </div>
+      <form hx-post="/settings/profile/{{ space.id }}/facts/{{ p.fact.id }}"
+            hx-target="#memory-{{ space.id }}" hx-swap="outerHTML">
+        <button class="btn sm success" type="submit" name="verdict" value="confirm">{{ icon('check', 'ic-sm') }} Да</button>
+        <button class="btn sm" type="submit" name="verdict" value="reject">{{ icon('x', 'ic-sm') }} Нет</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if memory.stale %}
+  <div class="reason-box">
+    <span class="reason-label">{{ icon('clock', 'ic-sm') }} Устарело? — больше {{ memory.stale_days }} дней
+      никто не подтверждал и источники не повторяли</span>
+    {% for p in memory.stale %}
+    <div class="sugg-row">
+      <div>{% if p.about %}о {{ p.about }}: {% endif %}{{ p.fact.text }}
+        <span class="hint-inline">(с {{ p.fact.valid_from | local("%d.%m.%Y") }})</span></div>
+      <form hx-post="/settings/profile/{{ space.id }}/facts/{{ p.fact.id }}"
+            hx-target="#memory-{{ space.id }}" hx-swap="outerHTML">
+        <button class="btn sm success" type="submit" name="verdict" value="confirm">Всё ещё так</button>
+        <button class="btn sm" type="submit" name="verdict" value="forget">Забыть</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if memory.over_cap %}
+  <p class="hint">Строк о себе под редактором уже {{ memory.subject_cap + memory.over_cap }} —
+    в промпт «по делу» помещается около {{ memory.subject_cap }}. Лишнее стоит забыть или
+    свести в текст выше; само ничего не удаляется.</p>
+  {% endif %}
+</div>

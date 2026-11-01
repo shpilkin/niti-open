@@ -1,0 +1,31 @@
+{% if connections %}
+<ul class="acc-list">
+  {% for c in connections %}
+  <li class="acc-row {% if not c.enabled %}paused{% endif %}">
+    <div class="acc-ic">{% if c.kind == "anthropic" %}{{ icon("star") }}{% else %}{{ icon("globe") }}{% endif %}</div>
+    <div class="acc-info">
+      <div class="acc-name">
+        {{ c.name }}
+        {% if c.is_default %}<span class="st-pill ok">по умолчанию</span>{% endif %}
+      </div>
+      <div class="acc-meta">
+        {{ c.model }} · {{ c.provider }}{% if c.base_url %} · {{ c.base_url }}{% endif %}{% if c.no_thinking %} · без рассуждений{% endif %}
+      </div>
+    </div>
+    <div class="acc-actions">
+      {% if not c.is_default %}
+      <button class="btn sm" hx-post="/settings/models/{{ c.id }}/default"
+              hx-target="#models" hx-swap="innerHTML">Сделать дефолтной</button>
+      {% endif %}
+      <a class="btn sm" href="/settings/models/{{ c.id }}/edit">Изменить</a>
+      <button class="btn sm danger" hx-post="/settings/models/{{ c.id }}/delete"
+              hx-target="#models" hx-swap="innerHTML"
+              hx-confirm="Удалить это подключение модели?">Удалить</button>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="acc-empty">Подключений нет. Пока используется Claude из <code>.env</code>
+  (<code>ANTHROPIC_API_KEY</code>), если он задан.</div>
+{% endif %}
